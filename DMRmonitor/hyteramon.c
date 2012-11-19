@@ -17,6 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 #include<stdio.h>
 #include<stdlib.h>
+#include<stdbool.h>
 #include<string.h>
 #include "/usr/include/pcap/pcap.h" 	// NEED TO FIX THIS
 #include<sys/socket.h>
@@ -26,43 +27,49 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #include<netinet/ip.h>
 #include<getopt.h>
 #include<time.h>	
+#define NUMREPEATERS 10
+
 struct UDP_hdr {
-        u_short	uh_sport;				//Source Port
-        u_short	uh_dport;				//Destnation Port
-        u_short	uh_ulen;				//Datagram Length
-        u_short	uh_sum;					//Datagram Checksum
+        unsigned short int uh_sport;				//Source Port
+        unsigned short int uh_dport;				//Destnation Port
+        unsigned short int uh_ulen;				//Datagram Length
+        unsigned short int uh_sum;				//Datagram Checksum
 };
+
+struct status{
+        _Bool Status;					//1 active, 0 inactice
+        unsigned short int SlotNum;			//1 = Slot 1, 2 = Slot 2
+	unsigned short int DstType;			//1 group, 2 private, 3 all
+	unsigned short int CallType;			//1 voice, 2 data
+        unsigned int SourceID;				//0 - 16777215
+        unsigned int DestinationID;			//0 - 16777215
+	struct in_addr RepeaterID;			//IP Address for now
+};
+struct str_repeater{
+        struct status slot[2];				//2 slots for DMR
+        struct in_addr DmrID;				//Using IP address as Peer ID 
+};
+struct str_repeater repeater[NUMREPEATERS];
+
+struct tm * tm;
+time_t Time;
 int debug = 0;
 char *devname = NULL;
-uint16_t SrcID = ((uint16_t)67 << 8) | ((uint16_t)65 << 0);
+
 void usage( int8_t e );
+
 void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char * packet)
 {
+	int i=0,*counter = (int *)arg;
+        int PacketType = 0;
         struct ip * ip;
         struct UDP_hdr * udp;
-	struct slot{
-		int Status;
-		int CallType;
-		int SourceID;
-		int DestinationID;
-	};
-	struct repeater{
-		struct ip RepeaterID;
-		struct slot slot1;
-		struct slot slot2;
-	};
+        struct status Data;
+        _Bool  sync = 0;
+	unsigned int capture_len = pkthdr->len;
         unsigned int IP_header_length;
-        unsigned int capture_len = pkthdr->len;
-        int PacketType;
-        long value;
-        int i=0, *counter = (int *)arg;
-	uint32_t DmrID = 0;
-	uint16_t sync = 0;
-	uint16_t Timeslot = 0;
-	time_t Time;	
-	uint32_t DestinationID;
-	struct tm * tm;
-	PacketType = 0; 
+        struct in_addr RepeaterID;        
+        
 	packet += sizeof (struct ether_header);
         capture_len -= sizeof(struct ether_header);
         ip = (struct ip*) packet;
@@ -74,29 +81,32 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
         capture_len -= sizeof (struct UDP_hdr);
 	Time = time(NULL);
 	tm = gmtime (&Time);
-	printdata();
+	
 	if ((capture_len == 72) && (debug != 2)) {
                 PacketType = *(packet+8);
 		sync  = *(packet+22)<<8|*(packet+23);
 	        printf("PT: %i SYNC: %i\n",PacketType,sync);
 		if (sync == 4369){
-			if (Timeslot == 4369){ Timeslot = 1; };
-                        if (Timeslot == 8738){ Timeslot = 2; };
-			DmrID = *(packet+38)<<16|*(packet+40)<<8|*(packet+42);
-                        DestinationID = *(packet+66)<<16|*(packet+65)<<8|*(packet+64);
+			if ( *(packet+16)<<8|*(packet+17) == 4369){
+				Data.SlotNum = 1; 
+			}
+			else if ( *(packet+16)<<8|*(packet+17) == 8738){
+				Data.SlotNum = 2;
+			}		
+			Data.SourceID = *(packet+38)<<16|*(packet+40)<<8|*(packet+42);
+                        Data.DestinationID = *(packet+66)<<16|*(packet+65)<<8|*(packet+64);
                         RepeaterID = ip->ip_src;
-
-			if PacketType = 2 {	//New or Continued Call
-				repeater	
-			}
-			if PacketType = 3 {	//End Of Call
-			}
-			Timeslot = *(packet+16)<<8|*(packet+17);
+			
+			if (PacketType == 2) {	//New or Continued Call
+				Data.Status = 1;
 			};
-		}
-		
-        }
-
+			if (PacketType == 3) {	//End Of Call
+				Data.Status = 0;
+			};
+		printdata();
+		};
+        };
+};
 
 int main(int argc, char *argv[] )
 {
@@ -169,13 +179,13 @@ int version ( void )
         exit(1);
 }
 
-int printdata ()
+void printdata (struct tm* tm, struct status Data, int debug)
 {
-///	if (debug == 0) {
-///		printf("%04d-%02d-%02d ",tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday);
-///	        printf("%02d:%02d:%02d ",tm->tm_hour, tm->tm_min, tm->tm_sec);
-///        	printf("%s %i %i %i %i\n",inet_ntoa(ip->ip_src), PacketType, Timeslot,  DmrID, DestinationID);
-///	}
+	if (debug == 0) {
+		printf("PACKET: %04d-%02d-%02d ",tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday);
+	        printf("%02d:%02d:%02d ",tm->tm_hour, tm->tm_min, tm->tm_sec);
+        	printf("%s %i %i %i %i\n",inet_ntoa(Data.RepeaterID), Data.SlotNum, Data.CallType, Data.DstType,  Data.SourceID, Data.DestinationID);
+	}
 ///	if (debug == 1) {
 ///	}g
 ///	if (debug == 2) {
