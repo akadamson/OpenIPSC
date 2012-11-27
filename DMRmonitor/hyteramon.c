@@ -46,9 +46,18 @@ struct status{
 	struct in_addr RepeaterID;			//IP Address for now
 	struct tm *DateTime;				//TimeStamp
 };
+
+struct str_slot{
+	_Bool Status;
+	unsigned int SourceID;                          //0 - 16777215
+        unsigned int DestinationID;
+	unsigned short int DstType;                     //1 group, 2 private, 3 all
+        unsigned short int CallType;
+};
+
 struct str_repeater{
-        struct status slot[2];				//2 slots for DMR
-        struct in_addr DmrID;				//Using IP address as Peer ID 
+        struct str_slot slot[2];				//2 slots for DMR
+        struct in_addr DmrID;					//Using IP address as Peer ID 
 };
 struct str_repeater repeater[NUMREPEATERS];
 int debug = 0;
@@ -88,7 +97,7 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
 		else if ( *(packet+16)<<8|*(packet+17) == 8738){
 			Data.SlotNum = 2;
 		}		
-		if (sync) {
+		if ((sync == 4369)|(sync==26214)) {
 			Data.SourceID =      *(packet+38)<<16|*(packet+40)<<8|*(packet+42);
 			switch (sync) {
                                 case 4369:                                              //Voice Frame
@@ -98,17 +107,17 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
                                         Data.CallType = 2;
                                         break;
                                 }
+		Data.DestinationID = *(packet+66)<<16|*(packet+65)<<8|*(packet+64);
+                Data.DateTime = gmtime(&Time);
+                Data.RepeaterID = ip->ip_src;
+		printdata(&Data, debug);
 		};
-                Data.DestinationID = *(packet+66)<<16|*(packet+65)<<8|*(packet+64);
-		Data.DateTime = gmtime(&Time);	
-		Data.RepeaterID = ip->ip_src; 
 		if (PacketType == 2) {	//New or Continued Call
 			Data.Status = 1;
 		};
 		if (PacketType == 3) {	//End Of Call
 			Data.Status = 0;
 		};
-		printdata(&Data, debug);
         };
 };
 
@@ -185,21 +194,31 @@ int version ( void )
 
 void printdata (struct status *Data, int debug)
 {
-		if (debug == 1) {
-			printf("Source Repeater %s Slot: %i Call Type: ",inet_ntoa(Data->RepeaterID), Data->SlotNum);
-			if (Data->CallType == 1){
-                                printf("Voice");
-                        };
-                        if (Data->CallType == 2){
-                        	printf("Data");
-                        };
-			printf(" Destination Type: %i Source ID: %i Destination ID: %i\n", Data->DstType,  Data->SourceID, Data->DestinationID);
-		}
-		if (debug == 0) {
-			printf("PACKET: %04d-%02d-%02d ",Data->DateTime->tm_year+1900, Data->DateTime->tm_mon+1, Data->DateTime->tm_mday);
-		        printf("%02d:%02d:%02d ",Data->DateTime->tm_hour, Data->DateTime->tm_min, Data->DateTime->tm_sec);
-        		printf("%s %i %i %i %i %i\n",inet_ntoa(Data->RepeaterID), Data->SlotNum, Data->CallType, Data->DstType,  Data->SourceID, Data->DestinationID);
-		}
+	if (debug == 3){
+		//printf("%s",inet_ntoa(ip->ip_src));
+                //printf(":%d -> ",ntohs(udp->uh_sport));
+                //printf("%s", inet_ntoa(ip->ip_dst));
+                //printf(":%d -> ",ntohs(udp->uh_dport));
+                //while (i < capture_len) {
+                //        printf("%02X", packet[i]);
+                //        i++;
+		//}
+		//printf("\n");
+	};
+	if (debug == 1) {
+		printf("Source Repeater %s Slot: %i Call Type: ",inet_ntoa(Data->RepeaterID), Data->SlotNum);
+		if (Data->CallType == 1){
+                	printf("Voice");
+                };
+                if (Data->CallType == 2){
+                       	printf("Data");
+                };
+		printf(" Destination Type: %i Source ID: %i Destination ID: %i\n", Data->DstType,  Data->SourceID, Data->DestinationID);
+	}
+	if (debug == 0) {
+		printf("%04d-%02d-%02d ",Data->DateTime->tm_year+1900, Data->DateTime->tm_mon+1, Data->DateTime->tm_mday);
+	        printf("%02d:%02d:%02d ",Data->DateTime->tm_hour, Data->DateTime->tm_min, Data->DateTime->tm_sec);
+        	printf("%s %i %i %i %i %i\n",inet_ntoa(Data->RepeaterID), Data->SlotNum, Data->CallType, Data->DstType,  Data->SourceID, Data->DestinationID);
+	}
 
 }
-
