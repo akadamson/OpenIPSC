@@ -39,7 +39,7 @@ struct UDP_hdr {
 struct status{
         _Bool Status;					//1 active, 0 inactice
         unsigned short int SlotNum;			//1 = Slot 1, 2 = Slot 2
-	unsigned short int DstType;			//1 group, 2 private, 3 all
+	unsigned short int DstType ;			//1 group, 2 private, 3 all. Need o implement detection.
 	unsigned short int CallType;			//1 voice, 2 data
         unsigned int SourceID;				//0 - 16777215
         unsigned int DestinationID;			//0 - 16777215
@@ -91,12 +91,12 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
 	sync  = *(packet+22)<<8|*(packet+23);
 	if (PacketType) {
 	        //printf(" SYNC: %i, %i\n",PacketType,sync);
-		if ( *(packet+16)<<8|*(packet+17) == 4369){
-			Data.SlotNum = 1; 
-		}
-		else if ( *(packet+16)<<8|*(packet+17) == 8738){
+		if ( (*(packet+16)<<8|*(packet+17)) == 4369){
+			Data.SlotNum = 1;
+		};
+		if ( (*(packet+16)<<8|*(packet+17)) == 8738){
 			Data.SlotNum = 2;
-		}		
+		};		
 		if ((sync == 4369)|(sync==26214)) {
 			Data.SourceID =      *(packet+38)<<16|*(packet+40)<<8|*(packet+42);
 			switch (sync) {
@@ -110,7 +110,19 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
 		Data.DestinationID = *(packet+66)<<16|*(packet+65)<<8|*(packet+64);
                 Data.DateTime = gmtime(&Time);
                 Data.RepeaterID = ip->ip_src;
-		printdata(&Data, debug);
+		Data.DstType = 1;
+		if (debug == 2){
+                	printf("%s",inet_ntoa(ip->ip_src));
+                	printf(":%d -> ",ntohs(udp->uh_sport));
+                	printf("%s", inet_ntoa(ip->ip_dst));
+                	printf(":%d -> ",ntohs(udp->uh_dport));
+                	while (i < capture_len) {
+                		printf("%02X", packet[i]);
+                		i++;
+                	}
+                	printf("\n");
+        	};	
+		if (debug != 2) { printdata(&Data, debug); };
 		};
 		if (PacketType == 2) {	//New or Continued Call
 			Data.Status = 1;
@@ -119,6 +131,17 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
 			Data.Status = 0;
 		};
         };
+	if (debug == 2){
+                        printf("%s",inet_ntoa(ip->ip_src));
+                        printf(":%d -> ",ntohs(udp->uh_sport));
+                        printf("%s", inet_ntoa(ip->ip_dst));
+                        printf(":%d -> ",ntohs(udp->uh_dport));
+                        while (i < capture_len) {
+                                printf("%02X", packet[i]);
+                                i++;
+                        }
+                        printf("\n");
+	};
 };
 
 int main(int argc, char *argv[] )
@@ -194,7 +217,7 @@ int version ( void )
 
 void printdata (struct status *Data, int debug)
 {
-	if (debug == 3){
+	if (debug == 2){
 		//printf("%s",inet_ntoa(ip->ip_src));
                 //printf(":%d -> ",ntohs(udp->uh_sport));
                 //printf("%s", inet_ntoa(ip->ip_dst));
@@ -206,14 +229,24 @@ void printdata (struct status *Data, int debug)
 		//printf("\n");
 	};
 	if (debug == 1) {
-		printf("Source Repeater %s Slot: %i Call Type: ",inet_ntoa(Data->RepeaterID), Data->SlotNum);
+		printf("Source Repeater: %s\tSlot: %i\t Call Type: ",inet_ntoa(Data->RepeaterID), Data->SlotNum);
 		if (Data->CallType == 1){
                 	printf("Voice");
                 };
                 if (Data->CallType == 2){
                        	printf("Data");
                 };
-		printf(" Destination Type: %i Source ID: %i Destination ID: %i\n", Data->DstType,  Data->SourceID, Data->DestinationID);
+		printf("\tDestination Type: ");
+		if (Data->CallType == 1){
+                        printf("Group ");
+                };
+                if (Data->CallType == 2){
+                        printf("Private ");
+                };
+		if (Data->CallType == 3){
+                        printf("All ");
+                };
+		printf("\tSource ID: %i\tDestination ID: %i\n", Data->SourceID, Data->DestinationID);
 	}
 	if (debug == 0) {
 		printf("%04d-%02d-%02d ",Data->DateTime->tm_year+1900, Data->DateTime->tm_mon+1, Data->DateTime->tm_mday);
