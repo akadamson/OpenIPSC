@@ -89,58 +89,50 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
 	Time = time(NULL);
         PacketType = *(packet+8);	
 	sync  = *(packet+22)<<8|*(packet+23);
-	if (PacketType) {
-	        //printf(" SYNC: %i, %i\n",PacketType,sync);
-		if ( (*(packet+16)<<8|*(packet+17)) == 4369){
-			Data.SlotNum = 1;
-		};
-		if ( (*(packet+16)<<8|*(packet+17)) == 8738){
-			Data.SlotNum = 2;
-		};		
-		if ((sync == 4369)|(sync==26214)) {
-			Data.SourceID =      *(packet+38)<<16|*(packet+40)<<8|*(packet+42);
-			switch (sync) {
-                                case 4369:                                              //Voice Frame
-                                        Data.CallType = 1;
-                                        break;
-                                case 26214:                                             //Data Frame
-                                        Data.CallType = 2;
-                                        break;
-                                }
-		Data.DestinationID = *(packet+66)<<16|*(packet+65)<<8|*(packet+64);
-                Data.DateTime = gmtime(&Time);
-                Data.RepeaterID = ip->ip_src;
-		Data.DstType = 1;
-		if (debug == 2){
-                	printf("%s",inet_ntoa(ip->ip_src));
-                	printf(":%d -> ",ntohs(udp->uh_sport));
-                	printf("%s", inet_ntoa(ip->ip_dst));
-                	printf(":%d -> ",ntohs(udp->uh_dport));
-                	while (i < capture_len) {
-                		printf("%02X", packet[i]);
-                		i++;
-                	}
-                	printf("\n");
-        	};	
-		if (debug != 2) { printdata(&Data, debug); };
-		};
-		if (PacketType == 2) {	//New or Continued Call
-			Data.Status = 1;
-		};
-		if (PacketType == 3) {	//End Of Call
-			Data.Status = 0;
-		};
+	
+	if ( (*(packet+16)<<8|*(packet+17)) == 4369){
+		Data.SlotNum = 1;
+	};
+	if ( (*(packet+16)<<8|*(packet+17)) == 8738){
+		Data.SlotNum = 2;
+	};		
+	
+	if (sync){ 
+		Data.SourceID = *(packet+38)<<16|*(packet+40)<<8|*(packet+42); 
+		switch (sync) {
+		case 4369:                               //Voice Frame
+        		Data.CallType = 1;
+	                break;
+		case 26214:                              //Data Frame
+			Data.CallType = 2;
+ 			break;
+	        };
+	};
+	Data.DestinationID = *(packet+66)<<16|*(packet+65)<<8|*(packet+64);
+        Data.DateTime = gmtime(&Time);
+        Data.RepeaterID = ip->ip_src;
+	Data.DstType = 1;			//Set to group by default for now
+
+
+	if ((PacketType == 2) & (sync != 0)) {  //NEW OR CONTINUED TRANSMISSION
+                                                //NEED TO FIGURE OUT WHAT TO DO!!
         };
-	if (debug == 2){
-                        printf("%s",inet_ntoa(ip->ip_src));
-                        printf(":%d -> ",ntohs(udp->uh_sport));
-                        printf("%s", inet_ntoa(ip->ip_dst));
-                        printf(":%d -> ",ntohs(udp->uh_dport));
-                        while (i < capture_len) {
-                                printf("%02X", packet[i]);
-                                i++;
-                        }
-                        printf("\n");
+        if (PacketType == 3) {                  //END OF TRANSMISSION
+                                                //NEED TO FIGURE OUT WHAT TO DO!
+        };
+
+	if (debug != 2) { printdata(&Data, debug); };
+	if (debug == 2){			//Need to move this out of here!!!
+		printf("%s",inet_ntoa(ip->ip_src));
+                printf(":%d -> ",ntohs(udp->uh_sport));
+                printf("%s", inet_ntoa(ip->ip_dst));
+                printf(":%d ",ntohs(udp->uh_dport));
+                printf("PT: %i SYNC: %i ",PacketType, sync);
+		while (i < capture_len) {
+                	printf("%02X", packet[i]);
+                        i++;
+                };
+                printf("\n");
 	};
 };
 
