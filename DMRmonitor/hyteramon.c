@@ -36,53 +36,79 @@ struct UDP_hdr {
         unsigned short int uh_sum;			//Datagram Checksum
 };
 
-struct status{
-        _Bool Status;					//1 active, 0 inactice
-        unsigned short int SlotNum;			//1 = Slot 1, 2 = Slot 2
-	unsigned short int DstType ;			//1 group, 2 private, 3 all. Need o implement detection.
-	unsigned short int CallType;			//1 voice, 2 data
-        unsigned int SourceID;				//0 - 16777215
-        unsigned int DestinationID;			//0 - 16777215
-	struct in_addr RepeaterID;			//IP Address for now
-	struct tm *DateTime;				//TimeStamp
-};
-
 struct str_slot{
 	_Bool Status;
 	unsigned int SourceID;                          //0 - 16777215
         unsigned int DestinationID;
 	unsigned short int DstType;                     //1 group, 2 private, 3 all
         unsigned short int CallType;
+	struct tm *DateTime;
+};
+
+struct str_status{
+	struct str_slot Slot[2];
 };
 
 struct str_repeater{
-        struct str_slot slot[2];			//2 slots for DMR
-        struct in_addr DmrID;				//Using IP address as Peer ID 
+	unsigned int RepeaterID;			//Integer form of IP address
+        struct str_status status;			//Array of 2 Slots
+	struct str_repeater* left;
+	struct str_repeater* right;
 };
 
-struct str_repeater repeater[NUMREPEATERS];		//ARRAY OF REPEATERS
+struct str_repeater *root = 0;
+
+struct str_repeater *search(int RepeaterID, struct str_repeater *leaf){
+	if ( leaf != 0 ){
+		if (RepeaterID==leaf->RepeaterID){
+			return leaf;
+		}
+		else if(RepeaterID<leaf->RepeaterID){
+			return search(RepeaterID, leaf->left);
+		}
+		else {
+			return search(RepeaterID, leaf->right);
+		}
+	}
+	else return 0;
+}
 
 int debug = 0;
 char *devname = NULL;
 
+void insert ( int RepeaterID, struct str_repeater **leaf){
+	if( *leaf == 0){				//First Repeater
+		*leaf = (struct str_repeater*) malloc(sizeof(struct str_repeater));
+		(*leaf)->RepeaterID = RepeaterID;
+		(*leaf)->left = 0;
+		(*leaf)->right = 0;
+	}
+	else if (RepeaterID < (*leaf)->RepeaterID){
+		insert(RepeaterID, &(*leaf)->left);
+	}
+	else if (RepeaterID > (*leaf)->RepeaterID) {
+		insert(RepeaterID, &(*leaf)->right);
+	}
+};
+		
 void usage( int8_t e );
-void printdata (struct status *data, int debug);
+void printdata(struct str_repeater *leaf, int debug);
 void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char * packet)
 {
 	int i=0,*counter = (int *)arg;
         int PacketType = 0;
         struct ip * ip;
         struct UDP_hdr * udp;
-        struct status Data;
-        int  sync = 0;
-	char buffer[15];
+	struct str_status status;
+	int sync = 0;
+	int slot = 0;
 	unsigned int capture_len = pkthdr->len;
         unsigned int IP_header_length;
        	time_t Time; 
 	packet += sizeof (struct ether_header);
         capture_len -= sizeof(struct ether_header);
         ip = (struct ip*) packet;
-        IP_header_length = ip->ip_hl *4;
+        IP_header_length = ip->ip_hl * 4;
         packet += IP_header_length;
         capture_len -= IP_header_length;
         udp = (struct UDP_hdr*) packet;
@@ -90,34 +116,35 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
         capture_len -= sizeof (struct UDP_hdr);
 	Time = time(NULL);
         PacketType = *(packet+8);	
-	sync  = *(packet+22)<<8|*(packet+23);
+	sync = *(packet+22)<<8|*(packet+23);
 	
 	if ( (*(packet+16)<<8|*(packet+17)) == 4369){
-		Data.SlotNum = 1;
+		slot = 1;
 	};
 	if ( (*(packet+16)<<8|*(packet+17)) == 8738){
-		Data.SlotNum = 2;
+		slot = 2;
 	};		
 	
 	if (sync){ 
-		Data.SourceID = *(packet+38)<<16|*(packet+40)<<8|*(packet+42); 
+		status.Slot[slot].SourceID = *(packet+38)<<16|*(packet+40)<<8|*(packet+42); 
 		switch (sync) {
 		case 4369:			//VOICE TRAFFIC PAYLOAD
-        		Data.CallType = 1;
+        		status.Slot[slot].CallType = 1;
 	                break;
 		case 26214:			//DATA PAYLOAD
-			Data.CallType = 2;
+			status.Slot[slot].CallType = 2;
  			break;
 	        };
 	};
-	Data.DestinationID = *(packet+66)<<16|*(packet+65)<<8|*(packet+64);
-        Data.DateTime = gmtime(&Time);
-        Data.RepeaterID = ip->ip_src;
-	Data.DstType = 1;			//Set to group by default for now
+	status.Slot[slot].DestinationID = *(packet+66)<<16|*(packet+65)<<8|*(packet+64);
+        status.Slot[slot].DateTime = gmtime(&Time);
+        //status.Slot[slot].RepeaterID = ip->ip_src;
+	status.Slot[slot].DstType = 1;			//Set to group by default for now
 
 
 	if ((PacketType == 2) & (sync != 0)) {  //NEW OR CONTINUED TRANSMISSION
-                                                //NEED TO FIGURE OUT WHAT TO DO!!
+		status.Slot[slot].Status = 1;
+        	insert(ip->ip_src.s_addr, status);                                        //NEED TO FIGURE OUT WHAT TO DO!!
         };
         if (PacketType == 3) {                  //END OF TRANSMISSION
                                                 //NEED TO FIGURE OUT WHAT TO DO!
@@ -144,8 +171,8 @@ int main(int argc, char *argv[] )
         struct bpf_program fcode;
         u_int netmask;
         pcap_t *descr = NULL;
-        int32_t c;
-         while ((c = getopt(argc, argv, "opdVhi:")) != EOF) {
+	int32_t c;
+	while ((c = getopt(argc, argv, "opdVhi:")) != EOF) {
                 switch (c) {
                 case 'p':
                         debug = 2;
@@ -208,6 +235,14 @@ int version ( void )
         printf ("hytera 0.04\n");
         exit(1);
 }
+
+void destroy_tree(struct str_repeater *leaf){
+	if ( leaf != 0 ){
+		destroy_tree(leaf->left);
+		destroy_tree(leaf->right);
+		free( leaf );
+	};
+};
 
 void printdata (struct status *Data, int debug)
 {
