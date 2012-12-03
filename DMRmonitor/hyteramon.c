@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #include<stdlib.h>
 #include<stdbool.h>
 #include<string.h>
-#include "/usr/include/pcap/pcap.h" 	// NEED TO FIX THIS
+#include "/usr/include/pcap/pcap.h" 			// NEED TO FIX THIS SO COMPILIER AUTOMATICALLY FINDS !!
 #include<sys/socket.h>
 #include<arpa/inet.h>
 #include<net/ethernet.h>
@@ -30,10 +30,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #define NUMREPEATERS 10
 
 struct UDP_hdr {
-        unsigned short int uh_sport;				//Source Port
-        unsigned short int uh_dport;				//Destnation Port
-        unsigned short int uh_ulen;				//Datagram Length
-        unsigned short int uh_sum;				//Datagram Checksum
+        unsigned short int uh_sport;			//Source Port
+        unsigned short int uh_dport;			//Destnation Port
+        unsigned short int uh_ulen;			//Datagram Length
+        unsigned short int uh_sum;			//Datagram Checksum
 };
 
 struct status{
@@ -56,10 +56,12 @@ struct str_slot{
 };
 
 struct str_repeater{
-        struct str_slot slot[2];				//2 slots for DMR
-        struct in_addr DmrID;					//Using IP address as Peer ID 
+        struct str_slot slot[2];			//2 slots for DMR
+        struct in_addr DmrID;				//Using IP address as Peer ID 
 };
-struct str_repeater repeater[NUMREPEATERS];
+
+struct str_repeater repeater[NUMREPEATERS];		//ARRAY OF REPEATERS
+
 int debug = 0;
 char *devname = NULL;
 
@@ -100,10 +102,10 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
 	if (sync){ 
 		Data.SourceID = *(packet+38)<<16|*(packet+40)<<8|*(packet+42); 
 		switch (sync) {
-		case 4369:                               //Voice Frame
+		case 4369:			//VOICE TRAFFIC PAYLOAD
         		Data.CallType = 1;
 	                break;
-		case 26214:                              //Data Frame
+		case 26214:			//DATA PAYLOAD
 			Data.CallType = 2;
  			break;
 	        };
