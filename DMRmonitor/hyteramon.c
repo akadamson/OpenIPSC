@@ -55,7 +55,7 @@ struct str_repeater{
 	struct str_repeater* left;
 	struct str_repeater* right;
 };
-
+struct str_repeater *repeater = NULL;
 struct str_repeater *root = 0;
 
 struct str_repeater *search(int repeater_id, struct str_repeater *leaf){
@@ -75,7 +75,6 @@ struct str_repeater *search(int repeater_id, struct str_repeater *leaf){
 
 int debug = 0;
 char *devname = NULL;
-
 void insert ( int repeater_id, struct str_repeater **leaf){
 	if( *leaf == 0){				//First Repeater
 		*leaf = (struct str_repeater*) malloc(sizeof(struct str_repeater));
@@ -93,12 +92,12 @@ void insert ( int repeater_id, struct str_repeater **leaf){
 		
 void usage( int8_t e );
 void printdata(struct str_repeater *leaf, int debug);
-void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char * packet)
+void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *packet)
 {
 	struct ip *ip;
         struct UDP_hdr *udp;
-	struct str_status tmp_status = { 0 };
-	struct str_repeater tmp_repeater = { 0 };
+	struct str_status tmp_status;
+	struct str_repeater **tmp_repeater;
 	int i=0,*counter = (int *)arg;
         int PacketType = 0;
 	int sync = 0;
@@ -118,7 +117,7 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
 	Time = time(NULL);
         PacketType = *(packet+8);	
 	sync = *(packet+22)<<8|*(packet+23);
-	//tmp_repeater = malloc(sizeof(*tmp_repeater)); 	
+	*tmp_repeater = (struct str_repeater*) malloc(sizeof(struct str_repeater));
 	if ( (*(packet+16)<<8|*(packet+17)) == 4369){
 		slot = 1;
 	};
@@ -150,24 +149,29 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
         tmp_status.slot[slot].datetime = gmtime(&Time);
         tmp_status.slot[slot].destination_type = 1;     //Set to group by default for now
 
-        tmp_repeater.status = tmp_status;
-        tmp_repeater.repeater_id = ip->ip_src.s_addr;
-	
-	insert(ip->ip_src.s_addr, tmp_repeater);
+        (*tmp_repeater)->status = tmp_status;		//store the temp status into the temp repeater for insertion into the btree
+        (*tmp_repeater)->repeater_id = ip->ip_src.s_addr;
+	(*tmp_repeater)->left = NULL;
+	(*tmp_repeater)->right = NULL;
+
+	if (search(repeater->repeater_id, NULL) == 0){				//See if we heard data from this repeater yet
+		insert(ip->ip_src.s_addr, &(*tmp_repeater));
+		printf("NEW REPEATER");
+	};
 
 	//if (debug != 2) { prstatusata(&Data, debug); };
-	if (debug == 2){			//Need to move this out of here!!!
+	//if (debug == 2){			//Need to move this out of here!!!
 	//	printf("%s",inet_ntoa(ip->ip_src));
         //      printf(":%d -> ",ntohs(udp->uh_sport));
         //      printf("%s", inet_ntoa(ip->ip_dst));
         //      printf(":%d ",ntohs(udp->uh_dport));
         //      printf("PT: %i SYNC: %i ",PacketType, sync);
-		while (i < capture_len) {
-                	printf("%02X", packet[i]);
-                        i++;
-                };
-                printf("\n");
-	};
+	//	while (i < capture_len) {
+        //       	printf("%02X", packet[i]);
+        //                i++;
+        //        };
+        //        printf("\n");
+	//};
 };
 
 int main(int argc, char *argv[] )
@@ -288,4 +292,4 @@ void printdata (struct str_repeater *leaf, int debug)
         	//printf("%s %i %i %i %i %i\n",inet_ntoa(Data->RepeaterID), Data->SlotNum, Data->CallType, Data->DstType,  Data->SourceID, Data->DestinationID);
 	}
 
-}
+};
