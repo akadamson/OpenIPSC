@@ -109,24 +109,26 @@ void printdata(struct str_repeater *leaf, int debug);
 void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *packet)
 {
         struct ip *ip;
-        //struct UDP_hdr *udp;
-        str_status *tmp_status;
-        str_repeater *tmp_repeater;
+        struct UDP_hdr *udp;
+
+	str_status *tmp_status;
+	str_repeater *tmp_repeater;
+	tmp_repeater = (str_repeater*)malloc(sizeof(str_repeater));
+        tmp_status = (str_status*)malloc(sizeof(str_status));
+
 	int PacketType = 0;
         int sync = 0;
         int slot = 0;
         unsigned int capture_len = pkthdr->len;
         unsigned int IP_header_length;
         time_t Time;
-	tmp_repeater = (str_repeater *)malloc(sizeof(str_repeater));
-	//tmp_status = (str_status*)malloc(sizeof(str_status));
 	packet += sizeof(struct ether_header);
         capture_len -= sizeof(struct ether_header);
         ip = (struct ip *) packet;
         IP_header_length = ip->ip_hl * 4;
         packet += IP_header_length;
         capture_len -= IP_header_length;
-        //udp = (struct UDP_hdr *) packet;
+        udp = (struct UDP_hdr *) packet;
         packet += sizeof(struct UDP_hdr);
         capture_len -= sizeof(struct UDP_hdr);
         Time = time(NULL);
@@ -141,31 +143,31 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                         slot = 2;
                 };
                 if (sync) {
-                        tmp_status->slot[slot]->source_id = *(packet + 38) << 16 | *(packet + 40) << 8 | *(packet + 42);
+                        tmp_status->slot[slot].source_id = *(packet + 38) << 16 | *(packet + 40) << 8 | *(packet + 42);
 
                         switch (sync) {
                         case VCALL:				//VOICE TRAFFIC PAYLOAD
-                                tmp_status->slot[slot]->call_type = 1;
+                                tmp_status->slot[slot].call_type = 1;
                                 break;
                         case DCALL:				//DATA PAYLOAD
-                                tmp_status->slot[slot]->call_type = 2;
+                                tmp_status->slot[slot].call_type = 2;
                                 break;
                         };
                 };
 
                 if ((PacketType == 2) & (sync != 0)) {  	//NEW OR CONTINUED TRANSMISSION
-                        tmp_status->slot[slot]->status = 1;
+                        tmp_status->slot[slot].status = 1;
                 };
 
                 if (PacketType == 3) {                  	//END OF TRANSMISSION
-                        tmp_status->slot[slot]->status = 0;
+                        tmp_status->slot[slot].status = 0;
                 };
-		printf("SLOT:%i",slot);
-		tmp_status->slot[slot]->destination_id = *(packet + 66) << 16 | *(packet + 65) << 8 | *(packet + 64);
+		printf("SLOT:%i\n",slot);
+		tmp_status->slot[slot].destination_id = *(packet + 66) << 16 | *(packet + 65) << 8 | *(packet + 64);
 
-                tmp_status->slot[slot]->datetime = gmtime(&Time);
+                tmp_status->slot[slot].datetime = gmtime(&Time);
 
-                tmp_status->slot[slot]->destination_type = 1;     //Set to group call by default for now, until found in stream
+                tmp_status->slot[slot].destination_type = 1;     //Set to group call by default for now, until found in stream
 
                 tmp_repeater->status = tmp_status;		//store the temp status into the temp repeater for insertion into the btree
 
@@ -174,8 +176,10 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                 tmp_repeater->left = NULL;			//set the left and right to null since we are not using em here
 
                 tmp_repeater->right = NULL;
-        };
-        //repeater = Insert(tmp_repeater, ip->ip_src.s_addr);
+	
+	        repeater = Insert(tmp_repeater, ip->ip_src.s_addr);
+
+	};
 
 };
 
