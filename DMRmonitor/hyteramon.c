@@ -37,20 +37,20 @@ struct UDP_hdr {
 };
 
 struct str_slot{
-	_Bool Status;
-	unsigned int SourceID;                          //0 - 16777215
-        unsigned int DestinationID;
-	unsigned short int DstType;                     //1 group, 2 private, 3 all
-        unsigned short int CallType;
-	struct tm *DateTime;
+	_Bool status;
+	unsigned int source_id;                          //0 - 16777215
+        unsigned int destination_id;
+	unsigned short int destination_type;                     //1 group, 2 private, 3 all
+        unsigned short int call_type;
+	struct tm *datetime;
 };
 
 struct str_status{
-	struct str_slot Slot[2];
+	struct str_slot slot[2];
 };
 
 struct str_repeater{
-	unsigned int RepeaterID;			//Integer form of IP address
+	unsigned int repeater_id;			//Integer form of IP address
         struct str_status status;			//Array of 2 Slots
 	struct str_repeater* left;
 	struct str_repeater* right;
@@ -58,16 +58,16 @@ struct str_repeater{
 
 struct str_repeater *root = 0;
 
-struct str_repeater *search(int RepeaterID, struct str_repeater *leaf){
+struct str_repeater *search(int repeater_id, struct str_repeater *leaf){
 	if ( leaf != 0 ){
-		if (RepeaterID==leaf->RepeaterID){
+		if (repeater_id==leaf->repeater_id){
 			return leaf;
 		}
-		else if(RepeaterID<leaf->RepeaterID){
-			return search(RepeaterID, leaf->left);
+		else if(repeater_id<leaf->repeater_id){
+			return search(repeater_id, leaf->left);
 		}
 		else {
-			return search(RepeaterID, leaf->right);
+			return search(repeater_id, leaf->right);
 		}
 	}
 	else return 0;
@@ -76,30 +76,31 @@ struct str_repeater *search(int RepeaterID, struct str_repeater *leaf){
 int debug = 0;
 char *devname = NULL;
 
-void insert ( int RepeaterID, struct str_repeater **leaf){
+void insert ( int repeater_id, struct str_repeater **leaf){
 	if( *leaf == 0){				//First Repeater
 		*leaf = (struct str_repeater*) malloc(sizeof(struct str_repeater));
-		(*leaf)->RepeaterID = RepeaterID;
+		(*leaf)->repeater_id = repeater_id;
 		(*leaf)->left = 0;
 		(*leaf)->right = 0;
 	}
-	else if (RepeaterID < (*leaf)->RepeaterID){
-		insert(RepeaterID, &(*leaf)->left);
+	else if (repeater_id < (*leaf)->repeater_id){
+		insert(repeater_id, &(*leaf)->left);
 	}
-	else if (RepeaterID > (*leaf)->RepeaterID) {
-		insert(RepeaterID, &(*leaf)->right);
-	}
+	else if (repeater_id > (*leaf)->repeater_id) {
+		insert(repeater_id, &(*leaf)->right);
+	};
 };
 		
 void usage( int8_t e );
 void printdata(struct str_repeater *leaf, int debug);
 void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char * packet)
 {
+	struct ip *ip;
+        struct UDP_hdr *udp;
+	struct str_status tmp_status = { 0 };
+	struct str_repeater tmp_repeater = { 0 };
 	int i=0,*counter = (int *)arg;
         int PacketType = 0;
-        struct ip * ip;
-        struct UDP_hdr * udp;
-	struct str_status status;
 	int sync = 0;
 	int slot = 0;
 	unsigned int capture_len = pkthdr->len;
@@ -117,7 +118,7 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
 	Time = time(NULL);
         PacketType = *(packet+8);	
 	sync = *(packet+22)<<8|*(packet+23);
-	
+	//tmp_repeater = malloc(sizeof(*tmp_repeater)); 	
 	if ( (*(packet+16)<<8|*(packet+17)) == 4369){
 		slot = 1;
 	};
@@ -126,37 +127,41 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
 	};		
 	
 	if (sync){ 
-		status.Slot[slot].SourceID = *(packet+38)<<16|*(packet+40)<<8|*(packet+42); 
+		tmp_status.slot[slot].source_id = *(packet+38)<<16|*(packet+40)<<8|*(packet+42); 
 		switch (sync) {
 		case 4369:			//VOICE TRAFFIC PAYLOAD
-        		status.Slot[slot].CallType = 1;
+        		tmp_status.slot[slot].call_type = 1;
 	                break;
 		case 26214:			//DATA PAYLOAD
-			status.Slot[slot].CallType = 2;
+			tmp_status.slot[slot].call_type = 2;
  			break;
 	        };
 	};
-	status.Slot[slot].DestinationID = *(packet+66)<<16|*(packet+65)<<8|*(packet+64);
-        status.Slot[slot].DateTime = gmtime(&Time);
-        //status.Slot[slot].RepeaterID = ip->ip_src;
-	status.Slot[slot].DstType = 1;			//Set to group by default for now
-
-
+	
 	if ((PacketType == 2) & (sync != 0)) {  //NEW OR CONTINUED TRANSMISSION
-		status.Slot[slot].Status = 1;
-        	insert(ip->ip_src.s_addr, status);                                        //NEED TO FIGURE OUT WHAT TO DO!!
+		tmp_status.slot[slot].status = 1;
         };
-        if (PacketType == 3) {                  //END OF TRANSMISSION
-                                                //NEED TO FIGURE OUT WHAT TO DO!
-        };
+        
+	if (PacketType == 3) {                  //END OF TRANSMISSION
+        	tmp_status.slot[slot].status = 0;
+	};
 
-	if (debug != 2) { printdata(&Data, debug); };
+	tmp_status.slot[slot].destination_id = *(packet+66)<<16|*(packet+65)<<8|*(packet+64);
+        tmp_status.slot[slot].datetime = gmtime(&Time);
+        tmp_status.slot[slot].destination_type = 1;     //Set to group by default for now
+
+        tmp_repeater.status = tmp_status;
+        tmp_repeater.repeater_id = ip->ip_src.s_addr;
+	
+	insert(ip->ip_src.s_addr, tmp_repeater);
+
+	//if (debug != 2) { prstatusata(&Data, debug); };
 	if (debug == 2){			//Need to move this out of here!!!
-		printf("%s",inet_ntoa(ip->ip_src));
-                printf(":%d -> ",ntohs(udp->uh_sport));
-                printf("%s", inet_ntoa(ip->ip_dst));
-                printf(":%d ",ntohs(udp->uh_dport));
-                printf("PT: %i SYNC: %i ",PacketType, sync);
+	//	printf("%s",inet_ntoa(ip->ip_src));
+        //      printf(":%d -> ",ntohs(udp->uh_sport));
+        //      printf("%s", inet_ntoa(ip->ip_dst));
+        //      printf(":%d ",ntohs(udp->uh_dport));
+        //      printf("PT: %i SYNC: %i ",PacketType, sync);
 		while (i < capture_len) {
                 	printf("%02X", packet[i]);
                         i++;
@@ -244,7 +249,7 @@ void destroy_tree(struct str_repeater *leaf){
 	};
 };
 
-void printdata (struct status *Data, int debug)
+void printdata (struct str_repeater *leaf, int debug)
 {
 	if (debug == 2){
 		//printf("%s",inet_ntoa(ip->ip_src));
@@ -258,29 +263,29 @@ void printdata (struct status *Data, int debug)
 		//printf("\n");
 	};
 	if (debug == 1) {
-		printf("Source Repeater: %s\tSlot: %i\t Call Type: ",inet_ntoa(Data->RepeaterID), Data->SlotNum);
-		if (Data->CallType == 1){
+		//printf("Source Repeater: %i\tSlot: %i\t Call Type: ",leaf->repeater_id, Data->SlotNum);
+		//if (leaf->call_type == 1){
                 	printf("Voice");
-                };
-                if (Data->CallType == 2){
+                //};
+                //if (leaf->call_type == 2){
                        	printf("Data");
-                };
+                //};
 		printf("\tDestination Type: ");
-		if (Data->CallType == 1){
+		//if (leaf->call_type == 1){
                         printf("Group ");
-                };
-                if (Data->CallType == 2){
+                //};
+                //if (leaf->call_type == 2){
                         printf("Private ");
-                };
-		if (Data->CallType == 3){
+                //};
+		//if (leaf->call_type == 3){
                         printf("All ");
-                };
-		printf("\tSource ID: %i\tDestination ID: %i\n", Data->SourceID, Data->DestinationID);
+                //};
+		//printf("\tSource ID: %i\tDestination ID: %i\n", leaf->source_id, leaf->destination_id);
 	}
 	if (debug == 0) {
-		printf("%04d-%02d-%02d ",Data->DateTime->tm_year+1900, Data->DateTime->tm_mon+1, Data->DateTime->tm_mday);
-	        printf("%02d:%02d:%02d ",Data->DateTime->tm_hour, Data->DateTime->tm_min, Data->DateTime->tm_sec);
-        	printf("%s %i %i %i %i %i\n",inet_ntoa(Data->RepeaterID), Data->SlotNum, Data->CallType, Data->DstType,  Data->SourceID, Data->DestinationID);
+		//printf("%04d-%02d-%02d ",Data->DateTime->tm_year+1900, Data->DateTime->tm_mon+1, Data->DateTime->tm_mday);
+	        //printf("%02d:%02d:%02d ",Data->DateTime->tm_hour, Data->DateTime->tm_min, Data->DateTime->tm_sec);
+        	//printf("%s %i %i %i %i %i\n",inet_ntoa(Data->RepeaterID), Data->SlotNum, Data->CallType, Data->DstType,  Data->SourceID, Data->DestinationID);
 	}
 
 }
