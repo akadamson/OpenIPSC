@@ -45,23 +45,24 @@ struct UDP_hdr {
         unsigned short int uh_sum;			//Datagram Checksum
 };
 
-typedef struct str_slot {
+struct str_slot {
         _Bool status;
         unsigned int source_id;                          //0 - 16777215
         unsigned int destination_id;
         unsigned short int destination_type;             //1 group, 2 private, 3 all
         unsigned short int call_type;
         struct tm *datetime;
-} str_slot;
+};
 
-struct str_slot str_status[NUMSLOTS];
+typedef struct str_status {
+	struct str_slot slot[NUMSLOTS];
+} str_status;
 
 typedef struct str_repeater {
         int repeater_id;
         struct str_status *status;
         struct str_repeater *left;
         struct str_repeater *right;
-
 } str_repeater;
 
 str_repeater *Insert(str_repeater *leaf, int repeater_id)
@@ -109,8 +110,8 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
 {
         struct ip *ip;
         //struct UDP_hdr *udp;
-        struct str_status *tmp_status = NULL;
-        struct str_repeater *tmp_repeater = NULL;
+        str_status *tmp_status;
+        str_repeater *tmp_repeater;
 	int PacketType = 0;
         int sync = 0;
         int slot = 0;
@@ -118,8 +119,8 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
         unsigned int IP_header_length;
         time_t Time;
 	tmp_repeater = (str_repeater *)malloc(sizeof(str_repeater));
-	//tmp_status = (str_slot*)malloc(sizeof(str_slot));
-        packet += sizeof(struct ether_header);
+	//tmp_status = (str_status*)malloc(sizeof(str_status));
+	packet += sizeof(struct ether_header);
         capture_len -= sizeof(struct ether_header);
         ip = (struct ip *) packet;
         IP_header_length = ip->ip_hl * 4;
