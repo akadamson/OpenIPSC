@@ -40,7 +40,7 @@ struct str_slot{
 	_Bool status;
 	unsigned int source_id;                          //0 - 16777215
         unsigned int destination_id;
-	unsigned short int destination_type;                     //1 group, 2 private, 3 all
+	unsigned short int destination_type;		 //1 group, 2 private, 3 all
         unsigned short int call_type;
 	struct tm *datetime;
 };
@@ -76,7 +76,7 @@ struct str_repeater *search(int repeater_id, struct str_repeater *leaf){
 int debug = 0;
 char *devname = NULL;
 void insert ( int repeater_id, struct str_repeater **leaf){
-	if( *leaf == 0){				//First Repeater
+	if( *leaf == 0){				
 		*leaf = (struct str_repeater*) malloc(sizeof(struct str_repeater));
 		(*leaf)->repeater_id = repeater_id;
 		(*leaf)->left = 0;
@@ -128,39 +128,39 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
 	if (sync){ 
 		tmp_status.slot[slot].source_id = *(packet+38)<<16|*(packet+40)<<8|*(packet+42); 
 		switch (sync) {
-		case 4369:			//VOICE TRAFFIC PAYLOAD
+		case 4369:				//VOICE TRAFFIC PAYLOAD
         		tmp_status.slot[slot].call_type = 1;
 	                break;
-		case 26214:			//DATA PAYLOAD
+		case 26214:				//DATA PAYLOAD
 			tmp_status.slot[slot].call_type = 2;
  			break;
 	        };
 	};
 	
-	if ((PacketType == 2) & (sync != 0)) {  //NEW OR CONTINUED TRANSMISSION
+	if ((PacketType == 2) & (sync != 0)) {  	//NEW OR CONTINUED TRANSMISSION
 		tmp_status.slot[slot].status = 1;
         };
         
-	if (PacketType == 3) {                  //END OF TRANSMISSION
+	if (PacketType == 3) {                  	//END OF TRANSMISSION
         	tmp_status.slot[slot].status = 0;
 	};
 
 	tmp_status.slot[slot].destination_id = *(packet+66)<<16|*(packet+65)<<8|*(packet+64);
         tmp_status.slot[slot].datetime = gmtime(&Time);
-        tmp_status.slot[slot].destination_type = 1;     //Set to group by default for now
+        tmp_status.slot[slot].destination_type = 1;     //Set to group call by default for now, until found in stream
 
         (*tmp_repeater)->status = tmp_status;		//store the temp status into the temp repeater for insertion into the btree
         (*tmp_repeater)->repeater_id = ip->ip_src.s_addr;
-	(*tmp_repeater)->left = NULL;
+	(*tmp_repeater)->left = NULL;			//set the left and right to null since we are not using em here
 	(*tmp_repeater)->right = NULL;
 
-	if (search(repeater->repeater_id, NULL) == 0){				//See if we heard data from this repeater yet
+	if (search(repeater->repeater_id, NULL) == 0){	//See if we heard data from this repeater yet. This is not the desired logic.
 		insert(ip->ip_src.s_addr, &(*tmp_repeater));
 		printf("NEW REPEATER");
 	};
 
-	//if (debug != 2) { prstatusata(&Data, debug); };
-	//if (debug == 2){			//Need to move this out of here!!!
+	//if (debug != 2) { prstatusata(&Data, debug); }; UNCOMMENT WHEN FIXED FOR BTREE
+	//if (debug == 2){			
 	//	printf("%s",inet_ntoa(ip->ip_src));
         //      printf(":%d -> ",ntohs(udp->uh_sport));
         //      printf("%s", inet_ntoa(ip->ip_dst));
