@@ -45,18 +45,16 @@ struct UDP_hdr {
         unsigned short int uh_sum;			//Datagram Checksum
 };
 
-struct str_slot {
+typedef struct str_slot {
         _Bool status;
         unsigned int source_id;                          //0 - 16777215
         unsigned int destination_id;
         unsigned short int destination_type;             //1 group, 2 private, 3 all
         unsigned short int call_type;
         struct tm *datetime;
-};
+} str_slot;
 
-struct str_status {
-        struct str_slot *slot[NUMSLOTS];
-};
+struct str_slot str_status[NUMSLOTS];
 
 typedef struct str_repeater {
         int repeater_id;
@@ -110,24 +108,24 @@ void printdata(struct str_repeater *leaf, int debug);
 void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *packet)
 {
         struct ip *ip;
-        struct UDP_hdr *udp;
-        struct str_status *tmp_status;
-        struct str_repeater *tmp_repeater;
+        //struct UDP_hdr *udp;
+        struct str_status *tmp_status = NULL;
+        struct str_repeater *tmp_repeater = NULL;
 	int PacketType = 0;
         int sync = 0;
         int slot = 0;
         unsigned int capture_len = pkthdr->len;
         unsigned int IP_header_length;
         time_t Time;
-	//tmp_status   =(str_status *) malloc(sizeof(str_status));
-	//tmp_repeater =(str_repeater *) malloc(sizeof(str_repeater));
+	tmp_repeater = (str_repeater *)malloc(sizeof(str_repeater));
+	//tmp_status = (str_slot*)malloc(sizeof(str_slot));
         packet += sizeof(struct ether_header);
         capture_len -= sizeof(struct ether_header);
         ip = (struct ip *) packet;
         IP_header_length = ip->ip_hl * 4;
         packet += IP_header_length;
         capture_len -= IP_header_length;
-        udp = (struct UDP_hdr *) packet;
+        //udp = (struct UDP_hdr *) packet;
         packet += sizeof(struct UDP_hdr);
         capture_len -= sizeof(struct UDP_hdr);
         Time = time(NULL);
@@ -161,7 +159,8 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                 if (PacketType == 3) {                  	//END OF TRANSMISSION
                         tmp_status->slot[slot]->status = 0;
                 };
-                tmp_status->slot[slot]->destination_id = *(packet + 66) << 16 | *(packet + 65) << 8 | *(packet + 64);
+		printf("SLOT:%i",slot);
+		tmp_status->slot[slot]->destination_id = *(packet + 66) << 16 | *(packet + 65) << 8 | *(packet + 64);
 
                 tmp_status->slot[slot]->datetime = gmtime(&Time);
 
