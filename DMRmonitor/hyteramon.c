@@ -162,7 +162,7 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                 if (PacketType == 3) {                  	//END OF TRANSMISSION
                         tmp_status->slot[slot].status = 0;
                 };
-		printf("SLOT:%i\n",slot);
+		printf("REP:%i SLOT:%i SYNC: %4i PT: %i\n",ip->ip_src.saddr,slot, sync, PacketType);
 		tmp_status->slot[slot].destination_id = *(packet + 66) << 16 | *(packet + 65) << 8 | *(packet + 64);
 
                 tmp_status->slot[slot].datetime = gmtime(&Time);
@@ -178,6 +178,7 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                 tmp_repeater->right = NULL;
 	
 	        repeater = Insert(tmp_repeater, ip->ip_src.s_addr);
+		if ((Find(repeater, ip->ip_src.s_addr))->status->slot[slot].status = 0){ printf ("START OF TRANSMISSION\n"); };
 
 	};
 
