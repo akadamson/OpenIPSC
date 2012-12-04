@@ -15,6 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<stdbool.h>
@@ -27,6 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #include<netinet/ip.h>
 #include<getopt.h>
 #include<time.h>
+
 #define NUMSLOTS 2
 #define SLOT1 4369
 #define SLOT2 8738
@@ -34,6 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #define DCALL 26214
 #define CALL  2
 #define CALLEND 3
+#define VFRAMESIZE 72
 
 struct UDP_hdr {
         unsigned short int uh_sport;			//Source Port
@@ -106,16 +109,18 @@ void printdata(struct str_repeater *leaf, int debug);
 
 void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *packet)
 {
-	struct ip *ip;
+        struct ip *ip;
         struct UDP_hdr *udp;
         struct str_status *tmp_status;
         struct str_repeater *tmp_repeater;
-        int PacketType = 0;
+	int PacketType = 0;
         int sync = 0;
         int slot = 0;
         unsigned int capture_len = pkthdr->len;
         unsigned int IP_header_length;
         time_t Time;
+	//tmp_status   =(str_status *) malloc(sizeof(str_status));
+	//tmp_repeater =(str_repeater *) malloc(sizeof(str_repeater));
         packet += sizeof(struct ether_header);
         capture_len -= sizeof(struct ether_header);
         ip = (struct ip *) packet;
@@ -128,48 +133,48 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
         Time = time(NULL);
         PacketType = *(packet + 8);
         sync = *(packet + 22) << 8 | *(packet + 23);
-
-        if ((*(packet + 16) << 8 | *(packet + 17)) == SLOT1) {
-                slot = 1;
-        };
-
-        if ((*(packet + 16) << 8 | *(packet + 17)) == SLOT2) {
-                slot = 2;
-        };
-        if (sync) {
-                tmp_status->slot[slot]->source_id = *(packet + 38) << 16 | *(packet + 40) << 8 | *(packet + 42);
-
-                switch (sync) {
-                case VCALL:				//VOICE TRAFFIC PAYLOAD
-                        tmp_status->slot[slot]->call_type = 1;
-                        break;
-                case DCALL:				//DATA PAYLOAD
-                        tmp_status->slot[slot]->call_type = 2;
-                        break;
+        if (capture_len == VFRAMESIZE) {
+                if ((*(packet + 16) << 8 | *(packet + 17)) == SLOT1) {
+                        slot = 1;
                 };
+
+                if ((*(packet + 16) << 8 | *(packet + 17)) == SLOT2) {
+                        slot = 2;
+                };
+                if (sync) {
+                        tmp_status->slot[slot]->source_id = *(packet + 38) << 16 | *(packet + 40) << 8 | *(packet + 42);
+
+                        switch (sync) {
+                        case VCALL:				//VOICE TRAFFIC PAYLOAD
+                                tmp_status->slot[slot]->call_type = 1;
+                                break;
+                        case DCALL:				//DATA PAYLOAD
+                                tmp_status->slot[slot]->call_type = 2;
+                                break;
+                        };
+                };
+
+                if ((PacketType == 2) & (sync != 0)) {  	//NEW OR CONTINUED TRANSMISSION
+                        tmp_status->slot[slot]->status = 1;
+                };
+
+                if (PacketType == 3) {                  	//END OF TRANSMISSION
+                        tmp_status->slot[slot]->status = 0;
+                };
+                tmp_status->slot[slot]->destination_id = *(packet + 66) << 16 | *(packet + 65) << 8 | *(packet + 64);
+
+                tmp_status->slot[slot]->datetime = gmtime(&Time);
+
+                tmp_status->slot[slot]->destination_type = 1;     //Set to group call by default for now, until found in stream
+
+                tmp_repeater->status = tmp_status;		//store the temp status into the temp repeater for insertion into the btree
+
+                tmp_repeater->repeater_id = ip->ip_src.s_addr;
+
+                tmp_repeater->left = NULL;			//set the left and right to null since we are not using em here
+
+                tmp_repeater->right = NULL;
         };
-
-        if ((PacketType == 2) & (sync != 0)) {  	//NEW OR CONTINUED TRANSMISSION
-                tmp_status->slot[slot]->status = 1;
-        };
-
-        if (PacketType == 3) {                  	//END OF TRANSMISSION
-                tmp_status->slot[slot]->status = 0;
-        };
-        tmp_status->slot[slot]->destination_id = *(packet + 66) << 16 | *(packet + 65) << 8 | *(packet + 64);
-
-        tmp_status->slot[slot]->datetime = gmtime(&Time);
-
-        tmp_status->slot[slot]->destination_type = 1;     //Set to group call by default for now, until found in stream
-
-        tmp_repeater->status = tmp_status;		//store the temp status into the temp repeater for insertion into the btree
-
-        tmp_repeater->repeater_id = ip->ip_src.s_addr;
-
-        tmp_repeater->left = NULL;			//set the left and right to null since we are not using em here
-
-        tmp_repeater->right = NULL;
-	
         //repeater = Insert(tmp_repeater, ip->ip_src.s_addr);
 
 };
