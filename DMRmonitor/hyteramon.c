@@ -29,6 +29,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #include<getopt.h>
 #include<time.h>
 
+#define NUMSLOTS 2
+#define SLOT1 4369
+#define SLOT2 8738
+#define VCALL 4369
+#define DCALL 26214
+#define CALL  2
+#define CALLEND 3
+
+
 struct UDP_hdr {
         unsigned short int uh_sport;			//Source Port
         unsigned short int uh_dport;			//Destnation Port
@@ -46,7 +55,7 @@ struct str_slot {
 };
 
 struct str_status {
-        struct str_slot *slot[2];
+        struct str_slot *slot[NUMSLOTS];
 };
 
 typedef struct str_repeater {
@@ -100,12 +109,10 @@ void printdata(struct str_repeater *leaf, int debug);
 
 void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *packet)
 {
-        printf("START PROCESS PACKET");
 	struct ip *ip;
         struct UDP_hdr *udp;
         struct str_status *tmp_status;
         struct str_repeater *tmp_repeater;
-        int i = 0, *counter = (int *)arg;
         int PacketType = 0;
         int sync = 0;
         int slot = 0;
@@ -125,22 +132,21 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
         PacketType = *(packet + 8);
         sync = *(packet + 22) << 8 | *(packet + 23);
 
-        if ((*(packet + 16) << 8 | *(packet + 17)) == 4369) {
+        if ((*(packet + 16) << 8 | *(packet + 17)) == SLOT1) {
                 slot = 1;
         };
 
-        if ((*(packet + 16) << 8 | *(packet + 17)) == 8738) {
+        if ((*(packet + 16) << 8 | *(packet + 17)) == SLOT2) {
                 slot = 2;
         };
-	printf ("SLOT: %i",slot);
         if (sync) {
                 tmp_status->slot[slot]->source_id = *(packet + 38) << 16 | *(packet + 40) << 8 | *(packet + 42);
 
                 switch (sync) {
-                case 4369:				//VOICE TRAFFIC PAYLOAD
+                case VCALL:				//VOICE TRAFFIC PAYLOAD
                         tmp_status->slot[slot]->call_type = 1;
                         break;
-                case 26214:				//DATA PAYLOAD
+                case DCALL:				//DATA PAYLOAD
                         tmp_status->slot[slot]->call_type = 2;
                         break;
                 };
@@ -153,7 +159,6 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
         if (PacketType == 3) {                  	//END OF TRANSMISSION
                 tmp_status->slot[slot]->status = 0;
         };
-
         tmp_status->slot[slot]->destination_id = *(packet + 66) << 16 | *(packet + 65) << 8 | *(packet + 64);
 
         tmp_status->slot[slot]->datetime = gmtime(&Time);
@@ -174,13 +179,11 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
 
 int main(int argc, char *argv[])
 {
-	printf("START MAIN");
         char packet_filter[] = "ip and udp";
         struct bpf_program fcode;
         u_int netmask;
         pcap_t *descr = NULL;
         int32_t c;
-        printf("START INSERT");
         while ((c = getopt(argc, argv, "opdVhi:")) != EOF) {
                 switch (c) {
                 case 'p':
@@ -208,7 +211,6 @@ int main(int argc, char *argv[])
         if (debug == 1) {
                 printf("USING CAPTURE DEVICE: %s\n", devname);
         }
-	printf("start pcap");
         pcap_if_t *alldevsp , *device;
         pcap_t *handle;
         char errbuf[100] , devs[100][100];
@@ -226,7 +228,6 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "ERROR: %s\n", pcap_geterr(descr));
                 exit(1);
         }
-	printf("END MAIN");
         return 0;
 }
 void usage(int8_t e)
