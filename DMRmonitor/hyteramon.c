@@ -1,5 +1,5 @@
 /*
-dmrmonitor-hytera - monitor hytera repeater and send to server
+hyteramon.c - monitor hytera repeater and send to server
 Copyright (C) 2012 David Kierzokwski (kd8eyf@digitalham.info)
 
 This program is free software; you can redistribute it and/or
