@@ -165,11 +165,32 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
 				printf("NEW REPEATER\n");						//IF NOT PRINT A MESSAGE
         			tmp_status->slot[slot].status = 1;
 				repeater = Insert(tmp_repeater, ip->ip_src.s_addr);			//AND ALLOCATE 
+				printf("START TX %04d-%02d-%02d %02d:%02d:%02d REP_ID:%i07 SLOT:%i SRC_ID:%07i DST_ID:%07i \n",
+                                        tmp_status->slot[slot].datetime->tm_year+1900,
+                                        tmp_status->slot[slot].datetime->tm_mon+1,
+                                        tmp_status->slot[slot].datetime->tm_mday,
+                                        tmp_status->slot[slot].datetime->tm_hour,
+                                        tmp_status->slot[slot].datetime->tm_min,
+                                        tmp_status->slot[slot].datetime->tm_sec,
+                                        ip->ip_src.s_addr,
+                                        slot,
+                                        tmp_status->slot[slot].source_id,
+                                        tmp_status->slot[slot].destination_id);
 			};
 			if ((((Find(repeater, ip->ip_src.s_addr))))->status->slot[slot].status == 0){	//First Time heard this transmission?
 				tmp_status->slot[slot].status = 1;					//If So store temp status as active
 				repeater = Insert(tmp_repeater, ip->ip_src.s_addr);			//And apply to actual status
-				printf("START TX DT: %04d-xx-xx REP:%i SLOT:%i SYNC: %4i PT: %i\n",tmp_status->slot[slot].datetime->tm_hour, ip->ip_src.s_addr,slot, sync, PacketType);
+				printf("START TX %04d-%02d-%02d %02d:%02d:%02d REP_ID:%i07 SLOT:%i SRC_ID:%07i DST_ID:%07i \n",
+                                	tmp_status->slot[slot].datetime->tm_year+1900,
+                                        tmp_status->slot[slot].datetime->tm_mon+1,
+                                        tmp_status->slot[slot].datetime->tm_mday,
+                                        tmp_status->slot[slot].datetime->tm_hour,
+                                        tmp_status->slot[slot].datetime->tm_min,
+                                        tmp_status->slot[slot].datetime->tm_sec,
+                                        ip->ip_src.s_addr,
+					slot, 
+					tmp_status->slot[slot].source_id,
+					tmp_status->slot[slot].destination_id);
 				//printdata(repeater, ip->ip_src.s_addr, slot);
 				return;
 			} else { 
@@ -180,7 +201,18 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                 if (PacketType == 3) {                  	//END OF TRANSMISSION
                         tmp_status->slot[slot].status = 0;
 			repeater = Insert(tmp_repeater, ip->ip_src.s_addr);
-			printf("END   TX   DT:  REP:%i SLOT:%i SYNC: %4i PT: %i\n",ip->ip_src.s_addr,slot, sync, PacketType);
+//			printf("END   TX DT:  REP:%i SLOT:%i SYNC: %4i PT: %i\n",ip->ip_src.s_addr,slot, sync, PacketType);
+			printf("END   TX %04d-%02d-%02d %02d:%02d:%02d REP_ID:%i07 SLOT:%i SRC_ID:%07i DST_ID:%07i \n",
+                                        tmp_status->slot[slot].datetime->tm_year+1900,
+                                        tmp_status->slot[slot].datetime->tm_mon+1,
+                                        tmp_status->slot[slot].datetime->tm_mday,
+                                        tmp_status->slot[slot].datetime->tm_hour,
+                                        tmp_status->slot[slot].datetime->tm_min,
+                                        tmp_status->slot[slot].datetime->tm_sec,
+                                        ip->ip_src.s_addr,
+                                        slot,
+                                        tmp_status->slot[slot].source_id,
+                                        tmp_status->slot[slot].destination_id);
                 };
 	
 	//	if (((Find(repeater, ip->ip_src.s_addr)) == 0)){ 
