@@ -21,9 +21,7 @@
     <body>
     <link rel="stylesheet" href="netstatus.css" type="text/css">
     <div id="header" class="fixed">
-        <div class="logo">                
-            <img src="logo.png" border="0" width="300" height="75" alt="logo" /></div>
-		</a>
+        <div class="logo">               </div> 
         <div class="nav">
             <ul>
                 <li>

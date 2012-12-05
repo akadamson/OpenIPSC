@@ -22,8 +22,6 @@
         <link rel="stylesheet" href="netstatus.css" type="text/css">
         <div id="header" class="fixed">
             <div class="logo">                
-                <img src="logo.png" border="0" width="300" height="75" alt="logo" />
-			</a>
 		</div>
             <div class="nav">
                 <ul>

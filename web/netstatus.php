@@ -20,13 +20,11 @@
 <html>
 <body>
 <link rel="stylesheet" href="netstatus.css" type="text/css">
-<div id="header" class="fixed">
-         <div class="logo">                
-                <img src="logo.png" border="0" width="300" height="75" alt="logo" />
-                </div>
-			</a>
-		<div class="nav">
-			<ul>
+	<div id="header" class="fixed">
+        <div class="logo">
+        </div>
+        <div class="nav">
+        <ul>
 			  <li><a href="netstatus.php" class="active" >NetStatus</a></li>
               <li><a href="lastheard.php" >LastHeard</a></li>		
 			  <li><a href="calllog.php">Call Log</a></li>
@@ -42,7 +40,7 @@
     <div id="maincontent">
         <h2>Network Status</h2>
         <?
-$state_location = "http://dmr.moses.bz/netstatus.json";
+$state_location = "http://127.0.0.1/netstatus.json";
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $state_location);
 curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -81,8 +79,8 @@ foreach ($State as $NetworkID => $Network ){?>
     <br /><?
 }?>
     </div>
-   </div>
   </div>
   <div id="footer" class="fixed"><a href="https://github.com/KD8EYF/OpenIPSC">OpenIPSC DMR Monitor</a><div id="credits">&copy 2012 KD8EYF</div></div>
 </body>
 </html>
+test
