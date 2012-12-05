@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #include<stdlib.h>
 #include<stdbool.h>
 #include<string.h>
-#include "/usr/include/pcap/pcap.h" 			// NEED TO FIX THIS SO COMPILIER AUTOMATICALLY FINDS !!
+#include "pcap/pcap.h" 			// NEED TO FIX THIS SO COMPILIER AUTOMATICALLY FINDS !!
 #include<sys/socket.h>
 #include<arpa/inet.h>
 #include<net/ethernet.h>
@@ -104,12 +104,7 @@ struct str_repeater *repeater = NULL;
 
 void printstatus(int repeater_id, int slot)
 {
-	/*str_status *tmp_status;
-	tmp_status = (str_status*)malloc(sizeof(str_status));
-	printf("RID:%i SLOT:%i",repeater_id, slot);
-	tmp_status = Find(repeater, repeater_id);
-	if (tmp_status == NULL) { printf ("NULL"); return; };*/
-	printf("%04d-%02d-%02d %02d:%02d:%02d 09%i %i %i %07i %07i %i %i\n",
+	printf("%04d-%02d-%02d %02d:%02d:%02d %09i %i %i %08i %08i %i %i\n",
         	repeater->status->slot[slot].datetime->tm_year+1900,
                 repeater->status->slot[slot].datetime->tm_mon+1,
                 repeater->status->slot[slot].datetime->tm_mday,
@@ -184,7 +179,6 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
 
                 if ((PacketType == 2) & (sync != 0)) {  	//NEW OR CONTINUED TRANSMISSION
 			if (((Find(repeater, ip->ip_src.s_addr)) == 0)){				//Check if this repeater exists
-				printf("NEW REPEATER\n");						//IF NOT PRINT A MESSAGE
         			tmp_status->slot[slot].status = 1;
 				repeater = Insert(tmp_repeater, ip->ip_src.s_addr);			//AND ALLOCATE 
                                 printstatus(ip->ip_src.s_addr, slot);
