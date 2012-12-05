@@ -102,24 +102,27 @@ str_repeater *Find(str_repeater *leaf, int repeater_id)		//Find data return null
 
 struct str_repeater *repeater = NULL;
 
-int printstatus(int repeater_id, int slot)
+void printstatus(int repeater_id, int slot)
 {
-	str_status *tmp_status;
+	/*str_status *tmp_status;
 	tmp_status = (str_status*)malloc(sizeof(str_status));
 	printf("RID:%i SLOT:%i",repeater_id, slot);
 	tmp_status = Find(repeater, repeater_id);
-	if (tmp_status == NULL) { printf ("NULL"); return; };
-	printf("%04d-%02d-%02d %02d:%02d:%02d REP_ID:%i07 SLOT:%i SRC_ID:%07i DST_ID:%07i \n",
-        	tmp_status->slot[slot].datetime->tm_year+1900,
-                tmp_status->slot[slot].datetime->tm_mon+1,
-                tmp_status->slot[slot].datetime->tm_mday,
-                tmp_status->slot[slot].datetime->tm_hour,
-                tmp_status->slot[slot].datetime->tm_min,
-                tmp_status->slot[slot].datetime->tm_sec,
+	if (tmp_status == NULL) { printf ("NULL"); return; };*/
+	printf("%04d-%02d-%02d %02d:%02d:%02d 09%i %i %i %07i %07i %i %i\n",
+        	repeater->status->slot[slot].datetime->tm_year+1900,
+                repeater->status->slot[slot].datetime->tm_mon+1,
+                repeater->status->slot[slot].datetime->tm_mday,
+                repeater->status->slot[slot].datetime->tm_hour,
+                repeater->status->slot[slot].datetime->tm_min,
+                repeater->status->slot[slot].datetime->tm_sec,
                 repeater_id,
+		repeater->status->slot[slot].status,
                 slot,
-                tmp_status->slot[slot].source_id,
-                tmp_status->slot[slot].destination_id);
+                repeater->status->slot[slot].source_id,
+                repeater->status->slot[slot].destination_id,
+		repeater->status->slot[slot].call_type,
+		repeater->status->slot[slot].destination_type);
 };
 
 int debug = 0;
