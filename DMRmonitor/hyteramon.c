@@ -29,14 +29,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #include<getopt.h>
 #include<time.h>
 
-#define NUMSLOTS 2
+#define NUMSLOTS 2					//DMR IS 2 SLOT 
 #define SLOT1 4369					//SLOT 1 IS SHOWN AS ARRAY ELEMENT 0
 #define SLOT2 8738					//SKIT 2 US SHOWS AS ARRAY ELEMENT 1
 #define VCALL 4369
 #define DCALL 26214
 #define CALL  2
 #define CALLEND 3
-#define VFRAMESIZE 72
+#define VFRAMESIZE 72					//UDP PAYLOAD SIZE OF REPEATER VOICE/DATA TRAFFIC
 
 struct UDP_hdr {
         unsigned short int uh_sport;			//Source Port
@@ -46,12 +46,12 @@ struct UDP_hdr {
 };
 
 struct str_slot {
-        int status;
+        int status;					 //0 - UNKEYED. 1 - KEYED
         unsigned int source_id;                          //0 - 16777215
-        unsigned int destination_id;
-        unsigned short int destination_type;             //1 group, 2 private, 3 all
-        unsigned short int call_type;
-        struct tm *datetime;
+        unsigned int destination_id;			 //0 - 16777215
+        unsigned short int destination_type;             //1 - Group, 2 - Private, 3 - All ***** NEED TO IMPLEMENT STILL
+        unsigned short int call_type;			 //1 - VOICE, 2 - DATA
+        struct tm *datetime;				 //YYYY-MM-DD HH:MM:SS UTC format is used
 };
 
 typedef struct str_status {
@@ -61,17 +61,17 @@ typedef struct str_status {
 typedef struct str_repeater {
         int repeater_id;
         struct str_status *status;
-        struct str_repeater *left;
-        struct str_repeater *right;
+        struct str_repeater *left;			//pointer to smaller node left on tree
+        struct str_repeater *right;			//pointer to larger node right on tree
 } str_repeater;
 
-str_repeater *Insert(str_repeater *leaf, int repeater_id)
+str_repeater *Insert(str_repeater *leaf, int repeater_id)	//Insert data into the tree
 {
         if (leaf == NULL) {
                 str_repeater *temp;
                 temp = (str_repeater *)malloc(sizeof(str_repeater));
                 temp -> repeater_id = repeater_id;
-                temp -> left = temp -> right = NULL;
+                temp -> left = temp -> right = NULL;		
                 return temp;
         }
 
@@ -85,7 +85,7 @@ str_repeater *Insert(str_repeater *leaf, int repeater_id)
 
 }
 
-str_repeater *Find(str_repeater *leaf, int repeater_id)
+str_repeater *Find(str_repeater *leaf, int repeater_id)		//Find data return null if not found
 {
         if (leaf == NULL) {
                 return NULL;
@@ -99,6 +99,7 @@ str_repeater *Find(str_repeater *leaf, int repeater_id)
                 return leaf;
         }
 }
+
 struct str_repeater *repeater = NULL;
 
 int debug = 0;
@@ -132,7 +133,7 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
         packet += sizeof(struct UDP_hdr);
         capture_len -= sizeof(struct UDP_hdr);
         Time = time(NULL);
-        PacketType = *(packet + 8);
+        PacketType = *(packet + 8);				//START DECODING STUFF
         sync = *(packet + 22) << 8 | *(packet + 23);
         if (capture_len == VFRAMESIZE) {
                 if ((*(packet + 16) << 8 | *(packet + 17)) == SLOT1) {
@@ -152,9 +153,9 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                                 break;
                         };
                 };
-		tmp_status->slot[slot].destination_id = *(packet + 66) << 16 | *(packet + 65) << 8 | *(packet + 64);
+		tmp_status->slot[slot].destination_id = *(packet + 66) << 16 | *(packet + 65) << 8 | *(packet + 64);	//Radio Destination
                 tmp_status->slot[slot].datetime = gmtime(&Time);//Store the Time / Need to check if start / end ?
-                tmp_status->slot[slot].destination_type = 1;     //Set to group call by default for now, until found in stream
+                tmp_status->slot[slot].destination_type = 1;    //Set to group call by default for now, until found in stream
                 tmp_repeater->status = tmp_status;              //store the temp status into the temp repeater for insertion into the btree
                 tmp_repeater->repeater_id = ip->ip_src.s_addr;  //set the btree index
                 tmp_repeater->left = NULL;                      //set the left and right to null since we are not using em here
@@ -191,17 +192,14 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
 					slot, 
 					tmp_status->slot[slot].source_id,
 					tmp_status->slot[slot].destination_id);
-				//printdata(repeater, ip->ip_src.s_addr, slot);
 				return;
 			} else { 
-				//printf( "CONTINUED TRANSMISSION\n");
 			};
                 };
 
                 if (PacketType == 3) {                  	//END OF TRANSMISSION
                         tmp_status->slot[slot].status = 0;
 			repeater = Insert(tmp_repeater, ip->ip_src.s_addr);
-//			printf("END   TX DT:  REP:%i SLOT:%i SYNC: %4i PT: %i\n",ip->ip_src.s_addr,slot, sync, PacketType);
 			printf("END   TX %04d-%02d-%02d %02d:%02d:%02d REP_ID:%i07 SLOT:%i SRC_ID:%07i DST_ID:%07i \n",
                                         tmp_status->slot[slot].datetime->tm_year+1900,
                                         tmp_status->slot[slot].datetime->tm_mon+1,
@@ -215,12 +213,7 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                                         tmp_status->slot[slot].destination_id);
                 };
 	
-	//	if (((Find(repeater, ip->ip_src.s_addr)) == 0)){ 
-	//		printf("START TX DT: REP:%i SLOT:%i SYNC: %4i PT: %i\n",ip->ip_src.s_addr,slot, sync, PacketType); 
-	//	};
-
 	};
-
 };
 
 int main(int argc, char *argv[])
@@ -293,50 +286,6 @@ void usage(int8_t e)
 
 int version(void)
 {
-        printf("hytera 0.05\n");
+        printf("hytera 0.08\n");
         exit(1);
 }
-
-/*
-void printdata(struct str_repeater *leaf, int repeater_id, int slot, int debug)
-{
-        if (debug == 2) {
-                //printf("%s",inet_ntoa(ip->ip_src));
-                //printf(":%d -> ",ntohs(udp->uh_sport));
-                //printf("%s", inet_ntoa(ip->ip_dst));
-                //printf(":%d -> ",ntohs(udp->uh_dport));
-                //while (i < capture_len) {
-                //        printf("%02X", packet[i]);
-                //        i++;
-                //}
-                //printf("\n");
-        };
-
-        if (debug == 1) {
-                //printf("Source Repeater: %i\tSlot: %i\t Call Type: ",leaf->repeater_id, Data->SlotNum);
-                //if (leaf->call_type == 1){
-                //	printf("Voice");
-                //};
-                //if (leaf->call_type == 2){
-                //       	printf("Data");
-                //};
-                //printf("\tDestination Type: ");
-                //if (leaf->call_type == 1){
-                //        printf("Group ");
-                //};
-                //if (leaf->call_type == 2){
-                //        printf("Private ");
-                //};
-                //if (leaf->call_type == 3){
-                //        printf("All ");
-                //};
-                //printf("\tSource ID: %i\tDestination ID: %i\n", leaf->source_id, leaf->destination_id);
-        }
-
-        if (debug == 0) {
-                //printf("%04d-%02d-%02d ",leaf.->DateTime->tm_year+1900, Data->DateTime->tm_mon+1, Data->DateTime->tm_mday);
-                //printf("%02d:%02d:%02d ",Data->DateTime->tm_hour, Data->DateTime->tm_min, Data->DateTime->tm_sec);
-                //printf("%s %i %i %i %i %i\n",inet_ntoa(Data->RepeaterID), Data->SlotNum, Data->CallType, Data->DstType,  Data->SourceID, Data->DestinationID);
-        }
-
-}; */
