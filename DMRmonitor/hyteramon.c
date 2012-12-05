@@ -167,9 +167,10 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
 				repeater = Insert(tmp_repeater, ip->ip_src.s_addr);			//AND ALLOCATE 
 			};
 			if ((((Find(repeater, ip->ip_src.s_addr))))->status->slot[slot].status == 0){	//First Time heard this transmission?
-				printf("NEW TRANSMISSION\n");
 				tmp_status->slot[slot].status = 1;					//If So store temp status as active
 				repeater = Insert(tmp_repeater, ip->ip_src.s_addr);			//And apply to actual status
+				printf("START TX DT: %04d-xx-xx REP:%i SLOT:%i SYNC: %4i PT: %i\n",tmp_status->slot[slot].datetime->tm_hour, ip->ip_src.s_addr,slot, sync, PacketType);
+				//printdata(repeater, ip->ip_src.s_addr, slot);
 				return;
 			} else { 
 				//printf( "CONTINUED TRANSMISSION\n");
@@ -179,14 +180,12 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                 if (PacketType == 3) {                  	//END OF TRANSMISSION
                         tmp_status->slot[slot].status = 0;
 			repeater = Insert(tmp_repeater, ip->ip_src.s_addr);
-			printf("END OF TRANSMISSION\n");
-			//printf("DT:  REP:%i SLOT:%i SYNC: %4i PT: %i\n",ip->ip_src.s_addr,slot, sync, PacketType);
+			printf("END   TX   DT:  REP:%i SLOT:%i SYNC: %4i PT: %i\n",ip->ip_src.s_addr,slot, sync, PacketType);
                 };
 	
-		if (((Find(repeater, ip->ip_src.s_addr)) == 0)){ 
-			printf ("START OF TRANSMISSION\n");
-			//printf("REP:%i SLOT:%i SYNC: %4i PT: %i\n",ip->ip_src.s_addr,slot, sync, PacketType); 
-		};
+	//	if (((Find(repeater, ip->ip_src.s_addr)) == 0)){ 
+	//		printf("START TX DT: REP:%i SLOT:%i SYNC: %4i PT: %i\n",ip->ip_src.s_addr,slot, sync, PacketType); 
+	//	};
 
 	};
 
@@ -266,8 +265,8 @@ int version(void)
         exit(1);
 }
 
-
-void printdata(struct str_repeater *leaf, int debug)
+/*
+void printdata(struct str_repeater *leaf, int repeater_id, int slot, int debug)
 {
         if (debug == 2) {
                 //printf("%s",inet_ntoa(ip->ip_src));
@@ -303,9 +302,9 @@ void printdata(struct str_repeater *leaf, int debug)
         }
 
         if (debug == 0) {
-                //printf("%04d-%02d-%02d ",Data->DateTime->tm_year+1900, Data->DateTime->tm_mon+1, Data->DateTime->tm_mday);
+                //printf("%04d-%02d-%02d ",leaf.->DateTime->tm_year+1900, Data->DateTime->tm_mon+1, Data->DateTime->tm_mday);
                 //printf("%02d:%02d:%02d ",Data->DateTime->tm_hour, Data->DateTime->tm_min, Data->DateTime->tm_sec);
                 //printf("%s %i %i %i %i %i\n",inet_ntoa(Data->RepeaterID), Data->SlotNum, Data->CallType, Data->DstType,  Data->SourceID, Data->DestinationID);
         }
 
-};
+}; */
