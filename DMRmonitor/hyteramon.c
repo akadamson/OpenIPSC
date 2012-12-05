@@ -30,8 +30,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #include<time.h>
 
 #define NUMSLOTS 2
-#define SLOT1 4369
-#define SLOT2 8738
+#define SLOT1 4369					//SLOT 1 IS SHOWN AS ARRAY ELEMENT 0
+#define SLOT2 8738					//SKIT 2 US SHOWS AS ARRAY ELEMENT 1
 #define VCALL 4369
 #define DCALL 26214
 #define CALL  2
@@ -46,7 +46,7 @@ struct UDP_hdr {
 };
 
 struct str_slot {
-        _Bool status;
+        int status;
         unsigned int source_id;                          //0 - 16777215
         unsigned int destination_id;
         unsigned short int destination_type;             //1 group, 2 private, 3 all
@@ -136,11 +136,9 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
         sync = *(packet + 22) << 8 | *(packet + 23);
         if (capture_len == VFRAMESIZE) {
                 if ((*(packet + 16) << 8 | *(packet + 17)) == SLOT1) {
+                        slot = 0;
+                } else if ((*(packet + 16) << 8 | *(packet + 17)) == SLOT2) {
                         slot = 1;
-                };
-
-                if ((*(packet + 16) << 8 | *(packet + 17)) == SLOT2) {
-                        slot = 2;
                 };
                 if (sync) {
                         tmp_status->slot[slot].source_id = *(packet + 38) << 16 | *(packet + 40) << 8 | *(packet + 42);
@@ -154,31 +152,41 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                                 break;
                         };
                 };
+		tmp_status->slot[slot].destination_id = *(packet + 66) << 16 | *(packet + 65) << 8 | *(packet + 64);
+                tmp_status->slot[slot].datetime = gmtime(&Time);//Store the Time / Need to check if start / end ?
+                tmp_status->slot[slot].destination_type = 1;     //Set to group call by default for now, until found in stream
+                tmp_repeater->status = tmp_status;              //store the temp status into the temp repeater for insertion into the btree
+                tmp_repeater->repeater_id = ip->ip_src.s_addr;  //set the btree index
+                tmp_repeater->left = NULL;                      //set the left and right to null since we are not using em here
+                tmp_repeater->right = NULL;
 
                 if ((PacketType == 2) & (sync != 0)) {  	//NEW OR CONTINUED TRANSMISSION
-                        tmp_status->slot[slot].status = 1;
+			if (((Find(repeater, ip->ip_src.s_addr)) == 0)){				//Check if this repeater exists
+				printf("NEW REPEATER\n");						//IF NOT PRINT A MESSAGE
+        			tmp_status->slot[slot].status = 1;
+				repeater = Insert(tmp_repeater, ip->ip_src.s_addr);			//AND ALLOCATE 
+			};
+			if ((((Find(repeater, ip->ip_src.s_addr))))->status->slot[slot].status == 0){	//First Time heard this transmission?
+				printf("NEW TRANSMISSION\n");
+				tmp_status->slot[slot].status = 1;					//If So store temp status as active
+				repeater = Insert(tmp_repeater, ip->ip_src.s_addr);			//And apply to actual status
+				return;
+			} else { 
+				//printf( "CONTINUED TRANSMISSION\n");
+			};
                 };
 
                 if (PacketType == 3) {                  	//END OF TRANSMISSION
                         tmp_status->slot[slot].status = 0;
+			repeater = Insert(tmp_repeater, ip->ip_src.s_addr);
+			printf("END OF TRANSMISSION\n");
+			//printf("DT:  REP:%i SLOT:%i SYNC: %4i PT: %i\n",ip->ip_src.s_addr,slot, sync, PacketType);
                 };
-		printf("REP:%i SLOT:%i SYNC: %4i PT: %i\n",ip->ip_src.saddr,slot, sync, PacketType);
-		tmp_status->slot[slot].destination_id = *(packet + 66) << 16 | *(packet + 65) << 8 | *(packet + 64);
-
-                tmp_status->slot[slot].datetime = gmtime(&Time);
-
-                tmp_status->slot[slot].destination_type = 1;     //Set to group call by default for now, until found in stream
-
-                tmp_repeater->status = tmp_status;		//store the temp status into the temp repeater for insertion into the btree
-
-                tmp_repeater->repeater_id = ip->ip_src.s_addr;
-
-                tmp_repeater->left = NULL;			//set the left and right to null since we are not using em here
-
-                tmp_repeater->right = NULL;
 	
-	        repeater = Insert(tmp_repeater, ip->ip_src.s_addr);
-		if ((Find(repeater, ip->ip_src.s_addr))->status->slot[slot].status = 0){ printf ("START OF TRANSMISSION\n"); };
+		if (((Find(repeater, ip->ip_src.s_addr)) == 0)){ 
+			printf ("START OF TRANSMISSION\n");
+			//printf("REP:%i SLOT:%i SYNC: %4i PT: %i\n",ip->ip_src.s_addr,slot, sync, PacketType); 
+		};
 
 	};
 
