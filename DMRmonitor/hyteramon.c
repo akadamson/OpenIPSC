@@ -129,7 +129,7 @@ void printstatus(int repeater_id, int slot)
                inet_ntoa(repeater->ip_address),
 	       repeater->udp_src,
                repeater->status->slot[slot].status,
-               slot,
+               slot+1,
                repeater->status->slot[slot].source_id,
                repeater->status->slot[slot].destination_id,
                repeater->status->slot[slot].call_type,
@@ -168,11 +168,13 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
         PacketType = *(packet + PTYPE_OFFSET);				//START DECODING STUFF
         sync = *(packet + SYNC_OFFSET1) << 8 | *(packet + SYNC_OFFSET2);
         if (capture_len == VFRAMESIZE) {
-                if ((*(packet + SLOT_OFFSET1) << 8 | *(packet + SLOT_OFFSET2)) == SLOT1) {
+
+                if ((*(packet + SLOT_OFFSET1) << 8 | *(packet + SLOT_OFFSET2)) == SLOT1) {	//DECODE WHAT SLOT THIS IS
                         slot = 0;
                 } else if ((*(packet + SLOT_OFFSET1) << 8 | *(packet + SLOT_OFFSET2)) == SLOT2) {
                         slot = 1;
                 };
+
                 if (sync) {
                         tmp_status->slot[slot].source_id = *(packet + SRC_OFFSET1) << 16 | *(packet + SRC_OFFSET2) << 8 | *(packet + SRC_OFFSET3);
 			if (sync == VCALL) {
@@ -181,6 +183,7 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
 				tmp_status->slot[slot].call_type = 2;	//DATA PAYLOAD
 			};
                 };
+
                 tmp_status->slot[slot].destination_id = *(packet + DST_OFFSET1) << 16 | *(packet + DST_OFFSET2) << 8 | *(packet + DST_OFFSET3);	//Radio Destination
                 tmp_status->slot[slot].datetime = gmtime(&Time);//Store the Time / Need to check if start / end ?
                 tmp_status->slot[slot].destination_type = 1;    //Set to group call by default for now, until found in stream
@@ -206,8 +209,9 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                         };
                 };
 
-                if ((PacketType == PTYPE_END) && ((((Find(repeater, ip->ip_src.s_addr))))->status->slot[slot].status == 1 )){ //Is this a stop code and is the channel currently active?
-			tmp_status->slot[slot].status = 0;
+                if ((PacketType == PTYPE_END) && ((((Find(repeater, ip->ip_src.s_addr))))->status->slot[slot].status == 1 )){ //Is this a stop code and is the channel currently active
+			tmp_repeater = Find(repeater, ip->ip_src.s_addr);
+			tmp_repeater->status->slot[slot].status = 0;
                         repeater = Insert(tmp_repeater, ip->ip_src.s_addr);
                         printstatus(ip->ip_src.s_addr, slot);
                 };
@@ -276,8 +280,6 @@ void usage(int8_t e)
                "   -i, --interface     Interface to listen on\n"
                "   -h, --help          This Help\n"
                "   -V, --version       Version Information\n"
-               "   -d, --debug         Show whats happening in english\n"
-               "   -p, --payload       Dump UDP payload data in one line hex (usefull for reverse engineering)\n"
                "\n"
                "Report cat bugs to kd8eyf@digitalham.info\n");
         exit(e);
@@ -285,6 +287,6 @@ void usage(int8_t e)
 
 int version(void)
 {
-        printf("hytera 0.08\n");
+        printf("hytera 1.00\n");
         exit(1);
 }
