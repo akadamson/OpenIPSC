@@ -206,8 +206,8 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                         };
                 };
 
-                if (PacketType == PTYPE_END) {                  	//END OF TRANSMISSION
-                        tmp_status->slot[slot].status = 0;
+                if ((PacketType == PTYPE_END) && ((((Find(repeater, ip->ip_src.s_addr))))->status->slot[slot].status == 1 )){ //Is this a stop code and is the channel currently active?
+			tmp_status->slot[slot].status = 0;
                         repeater = Insert(tmp_repeater, ip->ip_src.s_addr);
                         printstatus(ip->ip_src.s_addr, slot);
                 };
