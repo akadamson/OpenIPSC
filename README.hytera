@@ -31,7 +31,7 @@ OFFSET 4
 OFFSET 8
   0x01 = Voice Frame
   0x02 = Start Of Transmission or Sync Frame
-  0x03 = End of Transmission
+  0x03 = End of Transmission 
   0x42 = "B" as a part of "BZZZ"
 
 OFFSET 9
@@ -52,6 +52,7 @@ OFFSET 18 - 19
   "AAAA" = Voice packet
   "BBBB" = Voice packet
   "CCCC" = Voice packet
+  "2222" = End of Transmission
   
   Start of Transmission SEQUENCE: DDE1E1E1
   Voice Sequence w/ Sync: 789AEBC  
