@@ -1,8 +1,6 @@
 #!/usr/bin/perl
 #
 #     DAVID KIERZKOWSKI, KD8EYF
-#     13287 Teak Ct.
-#     Sterling Heights, MI 48312
 #
 use IO::Socket::INET;                   #Load Network module
 use DBI;                                #load db module
