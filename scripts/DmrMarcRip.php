@@ -18,7 +18,7 @@
 //along with this program; if not, write to the Free Software
 //Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //----------------------------------CHANGE THESE--------------------------------------------------------------//
-include '/home/kd8eyf/include/dmrdbwrite.inc';                             //Add this file for database creds.                              
+include '/usr/local/include/dmrdb.inc';                             //Add this file for database creds.                              
 $UserUrl = "http://www.n6dva.org/trbo-database/trbo_users_view.php?SearchString=&Print.x=67&Print.y=3&nav_menu=%23&SortField=&SelectedID=&SortDirection=&FirstRecord=1";
 $RepeaterUrl = "http://www.n6dva.org/trbo-database/trbo_repeaters_view.php?SearchString=&Print.x=67&Print.y=3&nav_menu=%23&SortField=&SelectedID=&SortDirection=&FirstRecord=1";
 $PrefixUrl = "http://www.n6dva.org/trbo-database/trbo_radio_id_scheme_view.php?SearchString=&Print.x=67&Print.y=3&nav_menu=%23&SortField=&SelectedID=&SortDirection=&FirstRecord=1";

@@ -135,6 +135,7 @@ void printstatus(int repeater_id, int slot)
                repeater->status->slot[slot].destination_id,
                repeater->status->slot[slot].call_type,
                repeater->status->slot[slot].destination_type);
+	 fflush(stdout);
 };
 
 int debug = 0;
