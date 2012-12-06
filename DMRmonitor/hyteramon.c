@@ -119,14 +119,15 @@ struct str_repeater *repeater = NULL;
 
 void printstatus(int repeater_id, int slot)
 {
-        printf("%04d-%02d-%02d %02d:%02d:%02d %s %5i %i %i %08i %08i %i %i\n",
+        printf("%04d-%02d-%02d %02d:%02d:%02d %10i %5i %i %i %08i %08i %i %i\n",
                repeater->status->slot[slot].datetime->tm_year+1900,
                repeater->status->slot[slot].datetime->tm_mon+1,
                repeater->status->slot[slot].datetime->tm_mday,
                repeater->status->slot[slot].datetime->tm_hour,
                repeater->status->slot[slot].datetime->tm_min,
                repeater->status->slot[slot].datetime->tm_sec,
-               inet_ntoa(repeater->ip_address),
+	       repeater->repeater_id,
+               //inet_ntoa(repeater->ip_address),
 	       repeater->udp_src,
                repeater->status->slot[slot].status,
                slot+1,
