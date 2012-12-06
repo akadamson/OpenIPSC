@@ -22,7 +22,8 @@
         <link rel="stylesheet" href="netstatus.css" type="text/css">
         <div id="header" class="fixed">
             <div class="logo">                
-		</div>
+		<img src="hyteralogo.png" border="0" height="75" alt="logo">	
+	    </div>
             <div class="nav">
                 <ul>
                     <li><a href="netstatus.php">NetStatus</a></li>
