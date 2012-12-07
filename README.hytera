@@ -1,4 +1,4 @@
-Hytera "Multi Site Connect" Protocol
+eh eHytera "Multi Site Connect" Protocol
 Voice Packets 114 bytes Port 30001
 Keepalive/Control? 60/102/146/162 bytes port 30000/30002
 
@@ -19,8 +19,9 @@ cont...
 |----> <--SYNC --> <---- AMBE+2 VOICE    ---->       <>  <gid ><sid >    |
 |------------------------------------------------------------------------|
 OFFSET 0 - 3
-  "ZZZZ"        = some form of special frame, always denoted with
-                  pattern at offset 0x08
+  "ZZZZ"        = some form of special frame, seems to denote that the
+                  packet is from a remote repeater(maybe master)
+                  always denoted with pattern at offset 0x08
   0xXXXX        = Offset 18 - 19 "BBBB" or "1111"
                   the first 2 bytes are the port number e.g. 0x7531 = 30001
 
@@ -32,10 +33,12 @@ OFFSET 8
   0x01 = Voice Frame
   0x02 = Start Of Transmission or Sync Frame
   0x03 = End of Transmission 
+  0x41 = "A" as a part of "AZZZ"
   0x42 = "B" as a part of "BZZZ"
+  0x43 = "C" as a part of "CZZZ"
 
 OFFSET 9
-  "ZZZ" - only when the value at offset 8 is "B"
+  "ZZZ" - only when the value at offset 8 is "A | B | C"
           always associated with pattern at Offset 0x00 noted above
 
 OFFSET 16 - 17
