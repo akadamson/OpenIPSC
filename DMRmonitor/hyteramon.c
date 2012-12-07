@@ -119,7 +119,7 @@ struct str_repeater *repeater = NULL;
 
 void printstatus(int repeater_id, int slot)
 {
-        printf("%04d-%02d-%02d %02d:%02d:%02d %10i %5i %i %i %08i %08i %i %i\n",
+        printf("%04d-%02d-%02d %02d:%02d:%02d %i %i %i %i %i %i %i %i\n",
                repeater->status->slot[slot].datetime->tm_year+1900,
                repeater->status->slot[slot].datetime->tm_mon+1,
                repeater->status->slot[slot].datetime->tm_mday,
@@ -135,6 +135,7 @@ void printstatus(int repeater_id, int slot)
                repeater->status->slot[slot].destination_id,
                repeater->status->slot[slot].call_type,
                repeater->status->slot[slot].destination_type);
+	 fflush(stdout);
 };
 
 int debug = 0;

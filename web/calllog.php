@@ -22,7 +22,8 @@
         <link rel="stylesheet" href="netstatus.css" type="text/css">
         <div id="header" class="fixed">
             <div class="logo">                
-		</div>
+		<img src="hyteralogo.png" border="0" height="75" alt="logo">	
+	    </div>
             <div class="nav">
                 <ul>
                     <li><a href="netstatus.php">NetStatus</a></li>
@@ -58,7 +59,7 @@ include '/usr/local/include/dmrdb.inc' ;
 date_default_timezone_set( 'UTC' ) ;
 $Date = date( 'l F jS, Y', time() ) ;
 $DateTime = date( 'd M y, H:i:s', time() ) ;
-$Query = "SELECT UserLog.StartTime AS StartTime, UserLog.DmrID AS DmrID, User.Callsign AS UserCallsign, User.Name AS UserName, UserLog.RepeaterID AS RepeaterID, Repeater.City AS RepeaterCity, Repeater.CallSign AS RepeaterCallsign, UserLog.DestinationID AS DestinationID, UserLog.SourceNet AS SourceNet, UserLog.TimeSlot AS TimeSlot, UserLog.GroupCall AS GroupCall, UserLog.PrivateCall AS PrivateCall, UserLog.VoiceCall AS VoiceCall, UserLog.DataCall AS DataCall,UserLog.VoiceCall AS VoiceCall, Talkgroup.Assignment AS Talkgroup FROM UserLog LEFT JOIN User ON (UserLog.DmrID = User.DmrID ) LEFT JOIN Talkgroup ON (UserLog.DestinationID = Talkgroup.DmrID) LEFT JOIN Repeater ON (UserLog.RepeaterID = Repeater.DmrID ) WHERE UserLog.RepeaterID LIKE '______' ORDER BY StartTime DESC LIMIT 100;" ;
+$Query = "SELECT UserLog.StartTime AS StartTime, UserLog.DmrID AS DmrID, User.Callsign AS UserCallsign, User.Name AS UserName, UserLog.RepeaterID AS RepeaterID, Repeater.City AS RepeaterCity, Repeater.CallSign AS RepeaterCallsign, UserLog.DestinationID AS DestinationID, UserLog.SourceNet AS SourceNet, UserLog.TimeSlot AS TimeSlot, UserLog.GroupCall AS GroupCall, UserLog.PrivateCall AS PrivateCall, UserLog.VoiceCall AS VoiceCall, UserLog.DataCall AS DataCall,UserLog.VoiceCall AS VoiceCall, Talkgroup.Assignment AS Talkgroup FROM UserLog LEFT JOIN User ON (UserLog.DmrID = User.DmrID ) LEFT JOIN Talkgroup ON (UserLog.DestinationID = Talkgroup.DmrID) LEFT JOIN Repeater ON (UserLog.RepeaterID = Repeater.DmrID ) ORDER BY StartTime DESC LIMIT 100;" ;
 mysql_query( $Query ) or die( "MYSQL ERROR:" . mysql_error() ) ;
 $Result = mysql_query( $Query ) or die( mysql_errno . " " . mysql_error() ) ;
 while ( $Event = mysql_fetch_array( $Result ) ) {
