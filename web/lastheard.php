@@ -21,7 +21,9 @@
     <body>
     <link rel="stylesheet" href="netstatus.css" type="text/css">
     <div id="header" class="fixed">
-        <div class="logo">               </div> 
+        <div class="logo">
+                <img src="hyteralogo.png" border="0" height="75" alt="logo">
+            </div>
         <div class="nav">
             <ul>
                 <li>
@@ -92,17 +94,13 @@ $Query = "
 		`Talkgroup` 
 	ON          
 		`LastHeard`.`DestinationID` = `Talkgroup`.`DmrID`
-	WHERE
-                `LastHeard`.`RepeaterID`
-        LIKE
-                '______'
 	ORDER BY  `LastHeard`.`StartTime` DESC";
 
 mysql_query( $Query ) or die( "MYSQL ERROR:" . mysql_error() ) ;
 $Result = mysql_query( $Query ) or die( mysql_errno . " " . mysql_error() ) ;
 while ( $Event = mysql_fetch_array( $Result ) ) {
 	$Talkgroup =   (is_null($Event[Talkgroup])?$Event[DestinationID]:$Event[Talkgroup]);
-	$UserName =    (is_null($Event[UserName]))?$Event[DmrID]:$Event[UserCallsign].str_repeat('&nbsp',(7-strlen($Event[UserCallsign]))).$Event[UserName];
+	$UserName =  (is_null($Event[UserName]))?$Event[DmrID]:"[".$Event[UserCallsign].str_repeat('&nbsp',(7-strlen($Event[UserCallsign])))."] - ".$Event[UserName]; 
 	$Audience=     ($Event[GroupCall] == 1?"GROUP":"PRIVATE");
 	$Type =        ($Event[VoiceCall] == 1?"VOICE":"DATA");
 	$RowClass =    (($i % 2 != 0)?"odd":"even");

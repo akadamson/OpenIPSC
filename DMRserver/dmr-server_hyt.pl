@@ -13,10 +13,13 @@ while($Frame = <STDIN>) {
 	($Date,$Time,$RepeaterID,$SourceNet,$Status,$Slot,$SourceID,$DestinationID,$Calltype,$DestinationType) = split(/ /,$Frame);       #Get The timestamp network and type of packet for pre processing
         $DateTime = $Date . " " . $Time;                                #assemble timestamp
 	if ($Status == 1) {
-		$Query = "INSERT INTO `dmrdb`.`UserLog` (`StartTime`, `EndTime`, `SourceNet`, `TimeSlot`, `RepeaterID`, `DmrID`, `DestinationID` ) VALUES('$DateTime','0000-00-00 00:00:00','$SourceNet', '$Slot','$RepeaterID', '$SourceID', '$DestinationID');";
+		$Query = "INSERT INTO `dmrdb`.`UserLog` (`StartTime`, `EndTime`, `SourceNet`, `TimeSlot`, `RepeaterID`, `DmrID`, `DestinationID` ) VALUES('$DateTime','$DateTime','$SourceNet', '$Slot','$RepeaterID', '$SourceID', '$DestinationID');";
 		print "$Query";
 	        $Statement = $SqlConn->prepare($Query);
         	$Statement->execute();
+		$Query = "INSERT INTO `dmrdb`.`LastHeard` (`DmrID`,`StartTime`,`SourceNet`,`TimeSlot`,`RepeaterID`,`DestinationID`) VALUES('$SourceID','$DateTime','$SourceNet','$Slot','$RepeaterID','$DestinationID') ON Duplicate Key Update StartTime='$DateTime',SourceNet='$SourceNet',TimeSlot='$Slot',RepeaterID='$RepeaterID',DestinationID='$DestinationID';";
+		$Statement = $SqlConn->prepare($Query);
+		$Statement ->execute();
 	};
 };
 $dbh->close;
