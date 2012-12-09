@@ -36,8 +36,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #define DCALL 26214					//HEX 6666
 #define CALL  2
 #define CALLEND 3
-#define PTYPE_ACTIVE 2					
-#define PTYPE_END 3
+#define PTYPE_ACTIVE1 2					
+#define PTYPE_END1 3
+#define PTYPE_ACTIVE2 66
+#define PTYPE_END2 67
 #define VFRAMESIZE 72					//UDP PAYLOAD SIZE OF REPEATER VOICE/DATA TRAFFIC
 #define SYNC_OFFSET1 22					//UDP OFFSETS FOR VARIOUS BYTES IN THE DATA STREAM
 #define SYNC_OFFSET2 23					//
@@ -178,10 +180,11 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                 };
 
                 if (sync) {
-                        tmp_status->slot[slot].source_id = *(packet + SRC_OFFSET1) << 16 | *(packet + SRC_OFFSET2) << 8 | *(packet + SRC_OFFSET3);
 			if (sync == VCALL) {
+				tmp_status->slot[slot].source_id = *(packet + SRC_OFFSET1) << 16 | *(packet + SRC_OFFSET2) << 8 | *(packet + SRC_OFFSET3);
 				tmp_status->slot[slot].call_type = 1;	 //VOICE TRAFFIC PAYLOAD
 			} else if (sync == DCALL) {
+				tmp_status->slot[slot].source_id = *(packet + SRC_OFFSET1 - 2) << 16 | *(packet + SRC_OFFSET2 - 2) << 8 | *(packet + SRC_OFFSET3 - 2);
 				tmp_status->slot[slot].call_type = 2;	//DATA PAYLOAD
 			};
                 };
@@ -196,7 +199,7 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                 tmp_repeater->left = NULL;                      //set the left and right to null since we are not using em here
                 tmp_repeater->right = NULL;
 
-                if ((PacketType == PTYPE_ACTIVE) & (sync != 0)) {  					//NEW OR CONTINUED TRANSMISSION
+                if ((PacketType == PTYPE_ACTIVE1 || PacketType == PTYPE_ACTIVE2) & (sync != 0)) {  					//NEW OR CONTINUED TRANSMISSION
                         if (((Find(repeater, ip->ip_src.s_addr)) == NULL)) {				//Check if this repeater exists
                                 tmp_status->slot[slot].status = 1;
                                 repeater = Insert(tmp_repeater, ip->ip_src.s_addr);			//AND ALLOCATE
@@ -211,7 +214,7 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                         };
                 };
 
-                if ((PacketType == PTYPE_END) && ((((Find(repeater, ip->ip_src.s_addr))))->status->slot[slot].status == 1 )){ //Is this a stop code and is the channel currently active
+                if ((PacketType == PTYPE_END1 || PacketType == PTYPE_END2) && ((((Find(repeater, ip->ip_src.s_addr))))->status->slot[slot].status == 1 )){ //Is this a stop code and is the channel currently active
 			tmp_repeater = Find(repeater, ip->ip_src.s_addr);
 			tmp_repeater->status->slot[slot].status = 0;
                         repeater = Insert(tmp_repeater, ip->ip_src.s_addr);
