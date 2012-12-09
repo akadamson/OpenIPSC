@@ -8,34 +8,12 @@
 #     Franz-Josef-Str. 20
 #     D-56642 Kruft
 #
-#       RAW UDP VOICE PAYLOAD HEX OFFSET- THANKS 2 DL5DI
-#       OFFSET: 0       USE: Format ID L:A/GI
-#       OFFSET: 1-4     USE: Repeater ID
-#       OFFSET: 5       USE: Sequence Number
-#       OFFSET: 6-8     USE: Source ID
-#       OFFSET: 9-11    USE: DestinationID
-#       OFFSET: 12      USE: Priority Voice / Data
-#       OFFSET: 13-16   USE: Call Control
-#       OFFSET: 17      USE: Call Control Info
-#       OFFSET: 18      USE: Controb Source ID
-#       OFFSET: 17b32   USE: Timeslot
-#       OFFSET: 19      USE: Payload Type
-#       OFFSET: 20-21   USE: Sequence Number
-#       OFFSET: 22-25   USE: TimeStamp
-#       OFFSET: 26-29   USE: SyncSrcID
-#       OFFSET: 30      USE: DataTypeVoiceHeader
-#       OFFSET: 31      USE: RSSI/threshold and parity values
-#       OFFSET: 32-33   USE: length to follow (words)
-#       OFFSET: 34      USE: RSSI Status
-#       OFFSET: 35      USE: Slot Type Sync
-#       OFFSET: 36-37   USE: Data Size
-
 # 0         1         2         3
 # 012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234
 # 2012-09-16 23:17:25 50201 98 312601 6a
 # 2012-09-16 23:11:15 50201 80 312601 145 3126002 2 02 00004e00 20 80 dd 64761 1183fed8 0  01 80 11 84 0a 96
 # 1          2        3     4  5      6   7       8 9  10       11 12    13    14       15 16 17 18 19 20 21
-
+#
 #       DL5DI DMR-MONITOR.pl VOICE STRING
 #       POSITION:1      USE: DATE
 #       POSITION:2      USE: TIME
