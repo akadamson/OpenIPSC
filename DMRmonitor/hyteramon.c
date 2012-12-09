@@ -80,6 +80,7 @@ typedef struct str_repeater {
         int repeater_id;
 	struct in_addr ip_address;
 	int udp_src;
+	int repeater_role;				//1 = master, 2 = slave, 3 = slave
         struct str_status *status;
         struct str_repeater *left;			//pointer to smaller node left on tree
         struct str_repeater *right;			//pointer to larger node right on tree
@@ -175,7 +176,6 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
         PacketType = *(packet + PTYPE_OFFSET);				//START DECODING STUFF
         sync = *(packet + SYNC_OFFSET1) << 8 | *(packet + SYNC_OFFSET2);
         if (capture_len == VFRAMESIZE) {
-
                 if ((*(packet + SLOT_OFFSET1) << 8 | *(packet + SLOT_OFFSET2)) == SLOT1) {	//DECODE WHAT SLOT THIS IS
                         slot = 0;
                 } else if ((*(packet + SLOT_OFFSET1) << 8 | *(packet + SLOT_OFFSET2)) == SLOT2) {
@@ -201,9 +201,8 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
 		tmp_repeater->udp_src = ntohs(udp->uh_sport);
                 tmp_repeater->left = NULL;                      //set the left and right to null since we are not using em here
                 tmp_repeater->right = NULL;
-
                 if ((PacketType == PTYPE_ACTIVE1 || (PacketType == PTYPE_ACTIVE2 && ((*(packet + SYNC_OFFSET3) << 8 | *(packet + SYNC_OFFSET4)) == ISSYNC))) & (sync != 0)) {  					//NEW OR CONTINUED TRANSMISSION
-                        if (((Find(repeater, ip->ip_src.s_addr)) == NULL)) {				//Check if this repeater exists
+			if (((Find(repeater, ip->ip_src.s_addr)) == NULL)) {				//Check if this repeater exists
                                 tmp_status->slot[slot].status = 1;
                                 repeater = Insert(tmp_repeater, ip->ip_src.s_addr);			//AND ALLOCATE
                                 printstatus(ip->ip_src.s_addr, slot);
