@@ -34,6 +34,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #define SLOT2 8738					//HEX 2222 
 #define VCALL 4369					//HEX 1111
 #define DCALL 26214					//HEX 6666
+#define ISSYNC 61166					//HEX EEEE
 #define CALL  2
 #define CALLEND 3
 #define PTYPE_ACTIVE1 2					
@@ -43,6 +44,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #define VFRAMESIZE 72					//UDP PAYLOAD SIZE OF REPEATER VOICE/DATA TRAFFIC
 #define SYNC_OFFSET1 22					//UDP OFFSETS FOR VARIOUS BYTES IN THE DATA STREAM
 #define SYNC_OFFSET2 23					//
+#define SYNC_OFFSET3 18					//Look for EEEE
+#define SYNC_OFFSET4 19					//Look for EEEE
 #define SLOT_OFFSET1 16					//	
 #define SLOT_OFFSET2 17
 #define PTYPE_OFFSET 8
@@ -199,7 +202,7 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                 tmp_repeater->left = NULL;                      //set the left and right to null since we are not using em here
                 tmp_repeater->right = NULL;
 
-                if ((PacketType == PTYPE_ACTIVE1 || PacketType == PTYPE_ACTIVE2) & (sync != 0)) {  					//NEW OR CONTINUED TRANSMISSION
+                if ((PacketType == PTYPE_ACTIVE1 || (PacketType == PTYPE_ACTIVE2 && ((*(packet + SYNC_OFFSET3) << 8 | *(packet + SYNC_OFFSET4)) == ISSYNC))) & (sync != 0)) {  					//NEW OR CONTINUED TRANSMISSION
                         if (((Find(repeater, ip->ip_src.s_addr)) == NULL)) {				//Check if this repeater exists
                                 tmp_status->slot[slot].status = 1;
                                 repeater = Insert(tmp_repeater, ip->ip_src.s_addr);			//AND ALLOCATE
