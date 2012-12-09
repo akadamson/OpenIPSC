@@ -110,6 +110,7 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
                         i++;
                }
         printf("\n");
+	fflush(stdout);
         }
 
 }
