@@ -173,7 +173,7 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
         packet += sizeof(struct UDP_hdr);
         capture_len -= sizeof(struct UDP_hdr);
         Time = time(NULL);
-        PacketType = *(packet + PTYPE_OFFSET);				//START DECODING STUFF
+        PacketType = *(packet + PTYPE_OFFSET);							//START DECODING STUFF
         sync = *(packet + SYNC_OFFSET1) << 8 | *(packet + SYNC_OFFSET2);
         if (capture_len == VFRAMESIZE) {
                 if ((*(packet + SLOT_OFFSET1) << 8 | *(packet + SLOT_OFFSET2)) == SLOT1) {	//DECODE WHAT SLOT THIS IS
@@ -185,10 +185,10 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                 if (sync) {
 			if (sync == VCALL) {
 				tmp_status->slot[slot].source_id = *(packet + SRC_OFFSET1) << 16 | *(packet + SRC_OFFSET2) << 8 | *(packet + SRC_OFFSET3);
-				tmp_status->slot[slot].call_type = 1;	 //VOICE TRAFFIC PAYLOAD
+				tmp_status->slot[slot].call_type = 1;	 			//VOICE TRAFFIC PAYLOAD
 			} else if (sync == DCALL) {
 				tmp_status->slot[slot].source_id = *(packet + SRC_OFFSET1 - 2) << 16 | *(packet + SRC_OFFSET2 - 2) << 8 | *(packet + SRC_OFFSET3 - 2);
-				tmp_status->slot[slot].call_type = 2;	//DATA PAYLOAD
+				tmp_status->slot[slot].call_type = 2;				//DATA PAYLOAD
 			};
                 };
 

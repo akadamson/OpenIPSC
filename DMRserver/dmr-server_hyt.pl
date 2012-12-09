@@ -14,7 +14,6 @@ while($Frame = <STDIN>) {
         $DateTime = $Date . " " . $Time;                                #assemble timestamp
 	if ($Status == 1) {
 		$Query = "INSERT INTO `dmrdb`.`UserLog` (`StartTime`, `EndTime`, `SourceNet`, `TimeSlot`, `RepeaterID`, `DmrID`, `DestinationID` ) VALUES('$DateTime','$DateTime','$SourceNet', '$Slot','$RepeaterID', '$SourceID', '$DestinationID');";
-		print "$Query";
 	        $Statement = $SqlConn->prepare($Query);
         	$Statement->execute();
 		$Query = "INSERT INTO `dmrdb`.`LastHeard` (`DmrID`,`StartTime`,`SourceNet`,`TimeSlot`,`RepeaterID`,`DestinationID`) VALUES('$SourceID','$DateTime','$SourceNet','$Slot','$RepeaterID','$DestinationID') ON Duplicate Key Update StartTime='$DateTime',SourceNet='$SourceNet',TimeSlot='$Slot',RepeaterID='$RepeaterID',DestinationID='$DestinationID';";
