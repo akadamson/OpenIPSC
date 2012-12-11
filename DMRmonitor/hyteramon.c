@@ -133,7 +133,6 @@ void printstatus(int repeater_id, int slot)
                repeater->status->slot[slot].datetime->tm_min,
                repeater->status->slot[slot].datetime->tm_sec,
 	       repeater->repeater_id,
-               //inet_ntoa(repeater->ip_address),
 	       repeater->udp_src,
                repeater->status->slot[slot].status,
                slot+1,

@@ -100,7 +100,7 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
 				printf("%s %i %i %i %i %i\n",inet_ntoa(ip->ip_src), PacketType, CallType, Timeslot,  DmrID, DestinationID);
 			};
 		}
-        if (debug == 2) {
+        if ((debug == 2) && (capture_len == 72)){
                 printf("%15s",inet_ntoa(ip->ip_src));
 		printf(":%5d -> ",ntohs(udp->uh_sport));
 		printf("%15s", inet_ntoa(ip->ip_dst));			
