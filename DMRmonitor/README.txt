@@ -10,7 +10,7 @@ COL 3	IP address of Repeater
 COL 4 UDP port where packet originated  
 COL 5	Status of this slot. 0 = inactive, 1 = active  
 COL 6	Slot Number 1 = Slot 1, 2 = Slot 2  
-COL 7	Source Raidio ID number  
+COL 7 Source Raidio ID number  
 COL 8	Destination Group ID  
 COL 9	Destination Type: 1 = Group, 2 = Private, 3 = All Call  
 COL 10	Call Type: 1 = Voice, 2 = Data  
