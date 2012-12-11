@@ -18,9 +18,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 
 #include<stdio.h>
 #include<stdlib.h>
-#include<stdbool.h>
 #include<string.h>
-#include "pcap/pcap.h" 			// NEED TO FIX THIS SO COMPILIER AUTOMATICALLY FINDS !!
+#include<pcap/pcap.h> 			// NEED TO FIX THIS SO COMPILIER AUTOMATICALLY FINDS !!
 #include<sys/socket.h>
 #include<arpa/inet.h>
 #include<net/ethernet.h>
@@ -74,13 +73,13 @@ struct str_slot {
 
 typedef struct str_status {
         struct str_slot slot[NUMSLOTS];
+	struct in_addr ip_address;
+	int udp_src;
+	int repeater_role;
 } str_status;
 
 typedef struct str_repeater {
         int repeater_id;
-	struct in_addr ip_address;
-	int udp_src;
-	int repeater_role;				//1 = master, 2 = slave, 3 = slave
         struct str_status *status;
         struct str_repeater *left;			//pointer to smaller node left on tree
         struct str_repeater *right;			//pointer to larger node right on tree
@@ -122,7 +121,7 @@ str_repeater *Find(str_repeater *leaf, int repeater_id)		//Find data return null
 };
 
 struct str_repeater *repeater = NULL;
-
+int version();
 void printstatus(int repeater_id, int slot)
 {
         printf("%04d-%02d-%02d %02d:%02d:%02d %i %i %i %i %i %i %i %i\n",
@@ -133,7 +132,7 @@ void printstatus(int repeater_id, int slot)
                repeater->status->slot[slot].datetime->tm_min,
                repeater->status->slot[slot].datetime->tm_sec,
 	       repeater->repeater_id,
-	       repeater->udp_src,
+	       repeater->status->udp_src,
                repeater->status->slot[slot].status,
                slot+1,
                repeater->status->slot[slot].source_id,
@@ -196,8 +195,8 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                 tmp_status->slot[slot].destination_type = 1;    //Set to group call by default for now, until found in stream
                 tmp_repeater->status = tmp_status;              //store the temp status into the temp repeater for insertion into the btree
                 tmp_repeater->repeater_id = ip->ip_src.s_addr;  //set the btree index
-		tmp_repeater->ip_address = ip->ip_src;
-		tmp_repeater->udp_src = ntohs(udp->uh_sport);
+		tmp_repeater->status->ip_address = ip->ip_src;
+		tmp_repeater->status->udp_src = ntohs(udp->uh_sport);
                 tmp_repeater->left = NULL;                      //set the left and right to null since we are not using em here
                 tmp_repeater->right = NULL;
                 if ((PacketType == PTYPE_ACTIVE1 || (PacketType == PTYPE_ACTIVE2 && ((*(packet + SYNC_OFFSET3) << 8 | *(packet + SYNC_OFFSET4)) == ISSYNC))) & (sync != 0)) {  					//NEW OR CONTINUED TRANSMISSION
@@ -229,7 +228,7 @@ int main(int argc, char *argv[])
 {
         char packet_filter[] = "udp";
         struct bpf_program fcode;
-        u_int netmask;
+        u_int netmask = 0;
         pcap_t *descr = NULL;
         int32_t c;
         while ((c = getopt(argc, argv, "opdVhi:")) != EOF) {
@@ -259,10 +258,9 @@ int main(int argc, char *argv[])
         if (debug == 1) {
                 printf("USING CAPTURE DEVICE: %s\n", devname);
         }
-        pcap_if_t *alldevsp , *device;
         pcap_t *handle;
-        char errbuf[100] , devs[100][100];
-        int count = 1 , n;
+        char errbuf[100]; 
+        int count = 1 ;
         handle = pcap_open_live(devname , 65536 , 1 , 0 , errbuf);
 
         if (handle == NULL) {
