@@ -34,24 +34,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #define SLOT2 8738					//HEX 2222 
 #define VCALL 4369					//HEX 1111
 #define DCALL 26214					//HEX 6666
-#define ISSYNC 61166					//HEX EEEE
-#define CALL  2
-#define CALLEND 3
-#define PTYPE_ACTIVE1 2					
-#define PTYPE_END1 3
-#define PTYPE_ACTIVE2 66
-#define PTYPE_END2 67
+#define SYNC 61166					//HEX EEEE
+
 #define VFRAMESIZE 72					//UDP PAYLOAD SIZE OF REPEATER VOICE/DATA TRAFFIC
-#define SYNC_OFFSET1 22					//UDP OFFSETS FOR VARIOUS BYTES IN THE DATA STREAM
-#define SYNC_OFFSET2 23					//
-#define SYNC_OFFSET3 18					//Look for EEEE
-#define SYNC_OFFSET4 19					//Look for EEEE
-#define SLOT_OFFSET1 16					//	
+
+#define SLOT_OFFSET1 16
 #define SLOT_OFFSET2 17
-#define PTYPE_OFFSET 8
-#define SRC_OFFSET1 38
+#define PACKET_TYPE1 18
+#define PACKET_TYPE2 19
+#define DMR_OFFSET2 21
+#define SYNC_OFFSET2 23					//
 #define SRC_OFFSET2 40
-#define SRC_OFFSET3 42
 #define DST_OFFSET1 66
 #define DST_OFFSET2 65
 #define DST_OFFSET3 64
