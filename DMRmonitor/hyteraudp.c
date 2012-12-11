@@ -67,40 +67,9 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
         capture_len -= sizeof (struct UDP_hdr);
 	Time = time(NULL);
 	tm = gmtime (&Time);
-	if ((capture_len == 72) && (debug != 2)) {
-		sprintf(buffer,"%02x", *(packet+8));
-		PacketType = strtol(buffer,NULL,16);
-			sprintf(buffer,"%02x%02x", *(packet+22), *(packet+23));		// LOOK FOR OUT EEEE SYNC PACKETS
-			sync = strtol(buffer,NULL,16);
-			//printf(" %i ",PacketType);
-			if (((sync == 4369) && (PacketType != 66)) || (sync == 26214)){
-				sprintf(buffer,"%02x%02x", *(packet+16), *(packet+17));
-                                Timeslot = strtol(buffer,NULL,16);
-				if (Timeslot == 4369){ Timeslot = 1; };
-                                if (Timeslot == 8738){ Timeslot = 2; };
-				sprintf(buffer,"%02x", *(packet+8));
-				PacketType = strtol(buffer,NULL,16);
-				switch (sync) {
-				case 4369:						//Voice Frame
-					CallType = 1;
-					sprintf(buffer,"%02x%02x%02x", *(packet+38), *(packet+40), *(packet+42));
-					break;
-				case 26214:						//Data Frame
-					CallType = 2;
-					sprintf(buffer,"%02x%02x%02x", *(packet+36), *(packet+38), *(packet+40));
-					break;
-				}
-				DmrID = strtol(buffer,NULL,16);
-				sprintf(buffer,"%02x%02x%02x", *(packet+66), *(packet+65), *(packet+64));
-                                DestinationID = strtol(buffer,NULL,16);
-				
-				RepeaterID[Timeslot] = ip->ip_src;
-				printf("%04d-%02d-%02d ",tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday);
-		                printf("%02d:%02d:%02d ",tm->tm_hour, tm->tm_min, tm->tm_sec);			
-				printf("%s %i %i %i %i %i\n",inet_ntoa(ip->ip_src), PacketType, CallType, Timeslot,  DmrID, DestinationID);
-			};
-		}
-        if ((debug == 2) && (capture_len == 72)){
+	if ((capture_len == 72)  {
+		printf("%02d-%02d ", tm->tm_mon+1, tm->tm_mday);
+		printf("%02d:%02d:%02d ",tm->tm_hour, tm->tm_min, tm->tm_sec);			
                 printf("%15s",inet_ntoa(ip->ip_src));
 		printf(":%5d -> ",ntohs(udp->uh_sport));
 		printf("%15s", inet_ntoa(ip->ip_dst));			
@@ -108,15 +77,15 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
 		while (i < capture_len) {
                        printf("%02X", packet[i]);
                         i++;
-               }
+               };
         printf("\n");
 	fflush(stdout);
-        }
+        };
 
 }
 int main(int argc, char *argv[] )
 {
-        char packet_filter[] = "ip and udp";
+        char packet_filter[] ="udp";
         struct bpf_program fcode;
         u_int netmask;
         pcap_t *descr = NULL;
