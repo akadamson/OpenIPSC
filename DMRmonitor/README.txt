@@ -30,7 +30,7 @@ MotoTRBO Voice / Data traffic Format
 
 COL 1 	Date  
 COL 2 	TIME  
-COL 3 	Source Network  
+COL 3   Source Network  
 COL 4		Packet Type  
 COL 5		Source Repeater ID  
 COL 6		Call Sequence Number  
