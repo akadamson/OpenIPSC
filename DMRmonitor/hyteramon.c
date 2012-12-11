@@ -42,6 +42,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #define SLOT_OFFSET2 17
 #define PACKET_TYPE1 18
 #define PACKET_TYPE2 19
+#define DMR_OFFSET1 20
 #define DMR_OFFSET2 21
 #define SYNC_OFFSET2 23					//
 #define SRC_OFFSET2 40
