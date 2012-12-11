@@ -34,7 +34,7 @@ COL 3   Source Network
 COL 4   Packet Type  
 COL 5   Source Repeater ID  
 COL 6   Call Sequence Number  
-COL	7   Destination ID  
+COL 7   Destination ID  
 COL 8   Prio - Voice / Data  
 COL 9   Flow Control Flags  
 COL 10  CallControlInfo  
