@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
 {
         char packet_filter[] = "udp";
         struct bpf_program fcode;
-        u_int netmask = 0;
+        u_int netmask = 0;	//DONT HAVE OR WANT BROADCAST PACKETS
         pcap_t *descr = NULL;
         int32_t c;
         while ((c = getopt(argc, argv, "opdVhi:")) != EOF) {
@@ -284,6 +284,7 @@ void usage(int8_t e)
                "   -i, --interface     Interface to listen on\n"
                "   -h, --help          This Help\n"
                "   -V, --version       Version Information\n"
+	       "   -f, --filter        Filter STring\n"
                "\n"
                "Report cat bugs to kd8eyf@digitalham.info\n");
         exit(e);
