@@ -174,55 +174,6 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
         Time = time(NULL);
         PacketType = *(packet + PTYPE_OFFSET);							//START DECODING STUFF
         sync = *(packet + SYNC_OFFSET1) << 8 | *(packet + SYNC_OFFSET2);
-        if (capture_len == VFRAMESIZE) {
-                if ((*(packet + SLOT_OFFSET1) << 8 | *(packet + SLOT_OFFSET2)) == SLOT1) {	//DECODE WHAT SLOT THIS IS
-                        slot = 0;
-                } else if ((*(packet + SLOT_OFFSET1) << 8 | *(packet + SLOT_OFFSET2)) == SLOT2) {
-                        slot = 1;
-                };
-
-                if (sync) {
-			if (sync == VCALL) {
-				tmp_status->slot[slot].source_id = *(packet + SRC_OFFSET1) << 16 | *(packet + SRC_OFFSET2) << 8 | *(packet + SRC_OFFSET3);
-				tmp_status->slot[slot].call_type = 1;	 			//VOICE TRAFFIC PAYLOAD
-			} else if (sync == DCALL) {
-				tmp_status->slot[slot].source_id = *(packet + SRC_OFFSET1 - 2) << 16 | *(packet + SRC_OFFSET2 - 2) << 8 | *(packet + SRC_OFFSET3 - 2);
-				tmp_status->slot[slot].call_type = 2;				//DATA PAYLOAD
-			};
-                };
-
-                tmp_status->slot[slot].destination_id = *(packet + DST_OFFSET1) << 16 | *(packet + DST_OFFSET2) << 8 | *(packet + DST_OFFSET3);	//Radio Destination
-                tmp_status->slot[slot].datetime = gmtime(&Time);//Store the Time / Need to check if start / end ?
-                tmp_status->slot[slot].destination_type = 1;    //Set to group call by default for now, until found in stream
-                tmp_repeater->status = tmp_status;              //store the temp status into the temp repeater for insertion into the btree
-                tmp_repeater->repeater_id = ip->ip_src.s_addr;  //set the btree index
-		tmp_repeater->ip_address = ip->ip_src;
-		tmp_repeater->udp_src = ntohs(udp->uh_sport);
-                tmp_repeater->left = NULL;                      //set the left and right to null since we are not using em here
-                tmp_repeater->right = NULL;
-                if ((PacketType == PTYPE_ACTIVE1 || (PacketType == PTYPE_ACTIVE2 && ((*(packet + SYNC_OFFSET3) << 8 | *(packet + SYNC_OFFSET4)) == ISSYNC))) & (sync != 0)) {  					//NEW OR CONTINUED TRANSMISSION
-			if (((Find(repeater, ip->ip_src.s_addr)) == NULL)) {				//Check if this repeater exists
-                                tmp_status->slot[slot].status = 1;
-                                repeater = Insert(tmp_repeater, ip->ip_src.s_addr);			//AND ALLOCATE
-                                printstatus(ip->ip_src.s_addr, slot);
-                        };
-                        if ((((Find(repeater, ip->ip_src.s_addr))))->status->slot[slot].status == 0) {	//First Time heard this transmission?
-                                tmp_status->slot[slot].status = 1;					//If So store temp status as active
-                                repeater = Insert(tmp_repeater, ip->ip_src.s_addr);			//And apply to actual status
-                                printstatus(ip->ip_src.s_addr, slot);
-                                return;
-                        } else {
-                        };
-                };
-
-                if ((PacketType == PTYPE_END1 || PacketType == PTYPE_END2) && ((((Find(repeater, ip->ip_src.s_addr))))->status->slot[slot].status == 1 )){ //Is this a stop code and is the channel currently active
-			tmp_repeater = Find(repeater, ip->ip_src.s_addr);
-			tmp_repeater->status->slot[slot].status = 0;
-                        repeater = Insert(tmp_repeater, ip->ip_src.s_addr);
-                        printstatus(ip->ip_src.s_addr, slot);
-                };
-
-        };
 };
 
 int main(int argc, char *argv[])
