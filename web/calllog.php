@@ -46,10 +46,8 @@
                     <th>Callsign</th>
                     <th>Name</th>
                     <th>Repeater</th>
-                    <th>Rep ID</th>
                     <th>Call</th>
                     <th>Group</th>
-                    <th>Net</th>
                     <th>Slot</th>
                     <th>Aud</th>
                     <th>Type</th>
@@ -78,10 +76,8 @@ while ( $Event = mysql_fetch_array( $Result ) ) {
                 <td nowrap class=<?=$RowClass?>><?=$UserCallsign?></td>
                 <td nowrap class=<?=$RowClass?>><?=$UserName?></td>
                 <td nowrap class=<?=$RowClass?>><?=$Repeater?></td>
-                <td nowrap class=<?=$RowClass?>><?=$Event[RepeaterID]?></td>
                 <td nowrap class=<?=$RowClass?>><?=$Event[RepeaterCallsign]?></td>
                 <td nowrap class=<?=$RowClass?>><?=$Talkgroup?></td>
-                <td nowrap class=<?=$RowClass?>><?=$Event[SourceNet]?></td>
                 <td nowrap class=<?=$RowClass?>><?=$Event[TimeSlot]?></td>
                 <td nowrap class=<?=$RowClass?>><?=$Audience?></td>
                 <td nowrap class=<?=$RowClass?>><?=$Type?></td>
