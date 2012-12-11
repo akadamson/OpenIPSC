@@ -7,7 +7,7 @@ Hytera Voice / Data traffic format
 COL 1	Date  
 COL 2	Time in UTC  
 COL 3	IP address of Repeater  
-COL 4 	UDP port where packet originated  
+COL 4 UDP port where packet originated  
 COL 5	Status of this slot. 0 = inactive, 1 = active  
 COL 6	Slot Number 1 = Slot 1, 2 = Slot 2  
 COL 7	Source Raidio ID number  
@@ -31,14 +31,14 @@ MotoTRBO Voice / Data traffic Format
 COL 1 	Date  
 COL 2 	TIME  
 COL 3   Source Network  
-COL 4		Packet Type  
-COL 5		Source Repeater ID  
-COL 6		Call Sequence Number  
-COL	7		Destination ID  
-COL 8		Prio - Voice / Data  
-COL 9		Flow Control Flags  
-COL 10	CallControlInfo  
-COL 11	ContribSrcID  
+COL 4   Packet Type  
+COL 5   Source Repeater ID  
+COL 6   Call Sequence Number  
+COL	7   Destination ID  
+COL 8   Prio - Voice / Data  
+COL 9   Flow Control Flags  
+COL 10  CallControlInfo  
+COL 11  ContribSrcID  
 COL 12	Payload Type  
 COL 13	Sequence Number  
 COL 14	TimeStamp  
