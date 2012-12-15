@@ -38,24 +38,14 @@ uint16_t SrcID = ((uint16_t)67 << 8) | ((uint16_t)65 << 0);
 void usage( int8_t e );
 void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char * packet)
 {
-        struct ip * ip;
-        struct UDP_hdr * udp;
+        struct ip *ip;
+        struct UDP_hdr *udp;
+	struct tm *tm;
         unsigned int IP_header_length;
         unsigned int capture_len = pkthdr->len;
-        char buffer[15];				// Used for temporay data conversions since i dont know how to program yet :)
-        int PacketType;
-        long value;
-        int i=0, *counter = (int *)arg;
-	int DmrID = 0;
-	int DestinationID = 0;
-	int sync = 0;
-	int Timeslot = 0;
-	int Counter = 0;
-	int CallType =0;				//1=Voice 2=Data
 	time_t Time;	
-	struct in_addr RepeaterID[2];
-	struct tm * tm;
-	PacketType = 0; 
+	int i;	
+	//int PacketType, i; 
 	packet += sizeof (struct ether_header);
         capture_len -= sizeof(struct ether_header);
         ip = (struct ip*) packet;
