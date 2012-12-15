@@ -67,20 +67,19 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
         capture_len -= sizeof (struct UDP_hdr);
 	Time = time(NULL);
 	tm = gmtime (&Time);
-	if ((capture_len == 72)  {
-		printf("%02d-%02d ", tm->tm_mon+1, tm->tm_mday);
-		printf("%02d:%02d:%02d ",tm->tm_hour, tm->tm_min, tm->tm_sec);			
+		printf("LEN:%2i ",capture_len);
+		printf("%02d-%02d", tm->tm_mon+1, tm->tm_mday);
+		printf("%02d:%02d:%02d",tm->tm_hour, tm->tm_min, tm->tm_sec);			
                 printf("%15s",inet_ntoa(ip->ip_src));
-		printf(":%5d -> ",ntohs(udp->uh_sport));
+		printf(":%5d ",ntohs(udp->uh_sport));
 		printf("%15s", inet_ntoa(ip->ip_dst));			
-	        printf(":%5d -> ",ntohs(udp->uh_dport));
+	        printf(":%5d ",ntohs(udp->uh_dport));
 		while (i < capture_len) {
                        printf("%02X", packet[i]);
                         i++;
                };
         printf("\n");
 	fflush(stdout);
-        };
 
 }
 int main(int argc, char *argv[] )
