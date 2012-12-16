@@ -111,7 +111,7 @@ UDP PAYLOAD SIZE 20
 |0                   1                   2                   3                   4                   5                   6           |  
 |0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 |
 |-------------------------------------------------------------------------------------------------------------------------------------     
-|        <>      <>        <>            <>  <>          <P ><  IP  >    <P ><  IP  >    <P ><  IP  >    <P ><  IP  >    <P ><  IP  >|
+|        <>      <>                      <>  <>          <P ><  IP  >    <P ><  IP  >    <P ><  IP  >    <P ><  IP  >    <P ><  IP  >|
 |50325050060000001400000077FF015A000000000100100000000201PPPPXXXXXXXX                                                                |
 |503250500D00000014000000EDFF0100000000000200110000000101PPPPXXXXXXXX0201PPPPXXXXXXXX                                                |
 |5032505006000000140000007DFF0100000000000300110000000101PPPPXXXXXXXX0301PPPPXXXXXXXX0401PPPPXXXXXXXX                                |
@@ -119,6 +119,9 @@ UDP PAYLOAD SIZE 20
 |503250500D0000001400000028FF0100000000000500120000000101PPPPXXXXXXXX0301PPPPXXXXXXXX0401PPPPXXXXXXXX0602PPPPXXXXXXXX0201PPPPXXXXXXXX|
 |-------------------------------------------------------------------------------------------------------------------------------------
 OFFSET 04  
+  0x01 = ?
+  0x02 = ?
+  0x07 = ?
   0x0A = ? Packet Always 20 bytes  
   0x0B = RDAC  
   0x0C = ?  
@@ -126,17 +129,17 @@ OFFSET 04
   0x0E = SLAVE -> MASTER  
   
 OFFSET 08  
-  ALWAYS 0x14  
-OFFSET 13  
-  ALWAYS 0xFF  
+  ALWAYS 0x14 
+
+Master => Slave Messages
+
 OFFSET 20  
-  NUMBER OF REPEATERS IN THIS MESSAGE  
+   NUMBER OF REPEATERS IN THIS MESSAGE  
 OFFSET 22  
-      0x10 = UNKNOWN ? STARTUP STATUS / CONTROL POSSIBLY  
-      0x11 = VOICE / DATA  
-      0x12 = RDAC  
-Master => Slave
-  OFFSET 29 - 28...  
+   0x10 = UNKNOWN ? STARTUP STATUS / CONTROL POSSIBLY  
+   0x11 = VOICE / DATA  
+   0x12 = RDAC  
+OFFSET 29 - 28...  
     UPD PORT OF SLAVE REPEATER  
-  OFFSET 30 - 33...  
+OFFSET 30 - 33...  
     IP ADDRESS OF SLAVE REPEATER  
