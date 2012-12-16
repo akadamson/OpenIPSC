@@ -1,6 +1,7 @@
-Hytera "Multi Site Connect" Protocol
-Voice Packets 114 bytes Port 30001
-Keepalive/Control? 60/102/146/162 bytes port 30000/30002
+Hytera "Multi Site Connect" Protocol  
+
+VOICE / DATA PACKETS  
+UDP PAYLOAD SIZE: 72  
 
 |------------------------------------------------------------------------|
 |                     Hytera Voice UDP Payload                           |
@@ -72,8 +73,11 @@ OFFSET 22 - 23
   "6666" - Data Packet
   "1111" - Sync Packet
 
+OFFSET , , (SYNC Packets Only)
+  Destination ID Bytes ( Big Endian )
+
 OFFSET 38,40,42 ( Sync Packets Only )
-   Source Radio ID Bytes ( Big Endian )
+  Source ID Bytes ( Big Endian )
 
 OFFSET 26 - 38 plus high order nibble of 39 for 13.5 bytes
   AMBE+2 1 of 2 VOICE AND DATA 
@@ -93,3 +97,46 @@ OFFSET 64 - 66
 
 OFFSET 67 - 69 
   Source ID ( little endian ) - First Byte Missing
+
+CONTROL / STATUS PACKETS   
+UDP PAYLOAD SIZE  ( POSSIBLE CHANGES WITH NUM OF REPEATERS ON NETWORK )  
+- MASTER to SLAVE msg letting slaves know about masters. 
+UDP PAYLOAD SIZE 24  
+- SLAVE TO MASTER msg  
+UDP PAYLOAD SIZE 20  
+- MASTER TO SLAVE msg  
+
+|------------------------------------------------------------------------------------------------------------------------------------|
+|                     MASTER TO SLAVE MSG                                                                                            |
+|0                   1                   2                   3                   4                   5                   6           |  
+|0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 |
+|-------------------------------------------------------------------------------------------------------------------------------------     
+|        <>      <>        <>            <>  <>          <P ><  IP  >    <P ><  IP  >    <P ><  IP  >    <P ><  IP  >    <P ><  IP  >|
+|50325050060000001400000077FF015A000000000100100000000201PPPPXXXXXXXX                                                                |
+|503250500D00000014000000EDFF0100000000000200110000000101PPPPXXXXXXXX0201PPPPXXXXXXXX                                                |
+|5032505006000000140000007DFF0100000000000300110000000101PPPPXXXXXXXX0301PPPPXXXXXXXX0401PPPPXXXXXXXX                                |
+|503250500D0000001400000005FF0100000000000400110000000101PPPPXXXXXXXX0301PPPPXXXXXXXX0401PPPPXXXXXXXX0201PPPPXXXXXXXX                |   
+|503250500D0000001400000028FF0100000000000500120000000101PPPPXXXXXXXX0301PPPPXXXXXXXX0401PPPPXXXXXXXX0602PPPPXXXXXXXX0201PPPPXXXXXXXX|
+|-------------------------------------------------------------------------------------------------------------------------------------
+OFFSET 04  
+  0x0A = ? Packet Always 20 bytes  
+  0x0B = RDAC  
+  0x0C = ?  
+  0x0D = MASTER -> SLAVE  
+  0x0E = SLAVE -> MASTER  
+  
+OFFSET 08  
+  ALWAYS 0x14  
+OFFSET 13  
+  ALWAYS 0xFF  
+OFFSET 20  
+  NUMBER OF REPEATERS IN THIS MESSAGE  
+OFFSET 22  
+      0x10 = UNKNOWN ? STARTUP STATUS / CONTROL POSSIBLY  
+      0x11 = VOICE / DATA  
+      0x12 = RDAC  
+Master => Slave
+  OFFSET 29 - 28...  
+    UPD PORT OF SLAVE REPEATER  
+  OFFSET 30 - 33...  
+    IP ADDRESS OF SLAVE REPEATER  
