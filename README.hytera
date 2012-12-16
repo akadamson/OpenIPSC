@@ -98,13 +98,7 @@ OFFSET 64 - 66
 OFFSET 67 - 69 
   Source ID ( little endian ) - First Byte Missing
 
-CONTROL / STATUS PACKETS   
-UDP PAYLOAD SIZE  ( POSSIBLE CHANGES WITH NUM OF REPEATERS ON NETWORK )  
-- MASTER to SLAVE msg letting slaves know about masters. 
-UDP PAYLOAD SIZE 24  
-- SLAVE TO MASTER msg  
-UDP PAYLOAD SIZE 20  
-- MASTER TO SLAVE msg  
+
 
 |------------------------------------------------------------------------------------------------------------------------------------|
 |                     MASTER TO SLAVE MSG                                                                                            |
