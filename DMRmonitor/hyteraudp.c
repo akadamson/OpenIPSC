@@ -38,14 +38,23 @@ uint16_t SrcID = ((uint16_t)67 << 8) | ((uint16_t)65 << 0);
 void usage( int8_t e );
 void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char * packet)
 {
-        struct ip *ip;
-        struct UDP_hdr *udp;
-	struct tm *tm;
+	struct ip * ip;
+        struct UDP_hdr * udp;
         unsigned int IP_header_length;
         unsigned int capture_len = pkthdr->len;
+        char buffer[15];				// Used for temporay data conversions since i dont know how to program yet :)
+        int PacketType;
+        long value;
+        int i=0, *counter = (int *)arg;
+	int DmrID = 0;
+	int DestinationID = 0;
+	int sync = 0;
+	int Timeslot = 0;
+	int Counter = 0;
+	int CallType =0;				//1=Voice 2=Data
 	time_t Time;	
-	int i;	
-	//int PacketType, i; 
+	char* c_time_string;
+	struct in_addr RepeaterID[2];
 	packet += sizeof (struct ether_header);
         capture_len -= sizeof(struct ether_header);
         ip = (struct ip*) packet;
@@ -55,14 +64,13 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
         udp = (struct UDP_hdr*) packet;
         packet += sizeof (struct UDP_hdr);
         capture_len -= sizeof (struct UDP_hdr);
-	Time = time(NULL);
-	tm = gmtime (&Time);
-		printf("LEN:%2i ",capture_len);
-		printf("%02d-%02d", tm->tm_mon+1, tm->tm_mday);
-		printf("%02d:%02d:%02d",tm->tm_hour, tm->tm_min, tm->tm_sec);			
-                printf("%15s",inet_ntoa(ip->ip_src));
+ 	Time = time(NULL);	
+	c_time_string = time(&Time);
+		printf("L:%3i ",capture_len);
+                printf("T:%10ju ",(uintmax_t)Time);
+		printf("S:%15s ",inet_ntoa(ip->ip_src));
 		printf(":%5d ",ntohs(udp->uh_sport));
-		printf("%15s", inet_ntoa(ip->ip_dst));			
+		printf("D:%15s", inet_ntoa(ip->ip_dst));			
 	        printf(":%5d ",ntohs(udp->uh_dport));
 		while (i < capture_len) {
                        printf("%02X", packet[i]);
@@ -74,6 +82,7 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
 }
 int main(int argc, char *argv[] )
 {
+	setbuf(stdout, NULL);
         char packet_filter[] ="udp";
         struct bpf_program fcode;
         u_int netmask;

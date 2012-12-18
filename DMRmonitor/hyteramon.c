@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #include<stdlib.h>
 #include<stdbool.h>
 #include<string.h>
-#include<pcap/pcap.h> 			// NEED TO FIX THIS SO COMPILIER AUTOMATICALLY FINDS !!
+#include<pcap/pcap.h> 			
 #include<sys/socket.h>
 #include<arpa/inet.h>
 #include<net/ethernet.h>
@@ -44,13 +44,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #define PACKET_TYPE2 19
 #define DMR_OFFSET1 20
 #define DMR_OFFSET2 21
-#define SYNC_OFFSET2 23					//
+#define SYNC_OFFSET1 22
+#define SYNC_OFFSET2 23	
+#define SRC_OFFSET1 38				
 #define SRC_OFFSET2 40
-#define DST_OFFSET1 66
-#define DST_OFFSET2 65
-#define DST_OFFSET3 64
+#define SRC_OFFSET3 42
+#define DST_OFFSET1 32
+#define DST_OFFSET2 34
+#define DST_OFFSET3 36
 
-struct UDP_hdr {
+struct udphdr {
         unsigned short int uh_sport;			//Source Port
         unsigned short int uh_dport;			//Destnation Port
         unsigned short int uh_ulen;			//Datagram Length
@@ -117,7 +120,7 @@ str_repeater *Find(str_repeater *leaf, int repeater_id)		//Find data return null
 
 struct str_repeater *repeater = NULL;
 
-void printstatus(int repeater_id, int slot)
+void printstaitus(int repeater_id, int slot)
 {
         printf("%04d-%02d-%02d %02d:%02d:%02d %i %i %i %i %i %i %i %i\n",
                repeater->status->slot[slot].datetime->tm_year+1900,
@@ -143,31 +146,32 @@ void usage(int8_t e);
 void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *packet)
 {
         struct ip *ip;
-        struct UDP_hdr *udp;
+        struct udphdr *udp;
 
         str_status *tmp_status;
         str_repeater *tmp_repeater;
         tmp_repeater = (str_repeater*)malloc(sizeof(str_repeater));
         tmp_status = (str_status*)malloc(sizeof(str_status));
+	
+        unsigned int caplen = pkthdr->len;
+        unsigned int iplen;
+	time_t unixtime;
+	unixtime = time(NULL);
+        
+	packet += sizeof(struct ether_header);		//Walkthrough the ethernet header
+        capturelen -= sizeof(struct ether_header);	//and decerement the payload size
+        
+	ip = (struct ip*) packet;			//setup the ip 
+        packet += ip->ip_hl * 4;			//move past it
+        capturelen -= ip->ip_hl * 4;			//and decrement the payload size..
+	
+        udp = (struct udphdr *) packet;			//The Rest is UDP
+        packet += sizeof(struct udphdr);		//move past 	
+        capturelen -= sizeof(struct udphdr);		//and decerment
 
-        int PacketType = 0;
-        int sync = 0;
-        int slot = 0;
-        unsigned int capture_len = pkthdr->len;
-        unsigned int IP_header_length;
-        time_t Time;
-        packet += sizeof(struct ether_header);
-        capture_len -= sizeof(struct ether_header);
-        ip = (struct ip *) packet;
-        IP_header_length = ip->ip_hl * 4;
-        packet += IP_header_length;
-        capture_len -= IP_header_length;
-        udp = (struct UDP_hdr *) packet;
-        packet += sizeof(struct UDP_hdr);
-        capture_len -= sizeof(struct UDP_hdr);
-        Time = time(NULL);
-        PacketType = *(packet + PTYPE_OFFSET);							//START DECODING STUFF
-        sync = *(packet + SYNC_OFFSET1) << 8 | *(packet + SYNC_OFFSET2);
+	if (capturelen == 72)
+
+
 };
 
 int main(int argc, char *argv[])
