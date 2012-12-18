@@ -22,10 +22,10 @@ Motorolas MOTOTRBO IPSC protocol
 |                                                                                                                            |
 |----------------------------------------------------------------------------------------------------------------------------|
 
-OFFSET: 0		    Format ID L:A/GI
-OFFSET: 1-4		  Repeater ID
-OFFSET: 5		    Sequence Number
-OFFSET: 6-8		  Source ID
+OFFSET: 0     Format ID L:A/GI
+OFFSET: 1-4   Repeater ID
+OFFSET: 5     Sequence Number
+OFFSET: 6-8   Source ID
 OFFSET: 9-11	  DestinationID
 OFFSET: 12      Priority Voice / Data
 OFFSET: 13-16   Call Control
