@@ -57,7 +57,7 @@ OFFSET 18 - 19
   "BBBB" = Voice packet
   "CCCC" = Voice packet
   "2222" = End of Transmission
-  "FFFF" = STATUS PACKET?!
+  "FFFF" = Status Packet
   
   Start of Transmission SEQUENCE: DDE1E1E1
   Voice Sequence w/ Sync: 789AEBC  
@@ -101,55 +101,51 @@ OFFSET 67 - 69
 
 
 |--------------------------------------------------------------------|  
-|                     MASTER TO SLAVE MSG                            |  
+|                        PEER 2 PEER MESSAGE                         |  
 |0                   1                   2                   3       |  
 |0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 |  
 |--------------------------------------------------------------------|  
 |                                                    <   REPEATING  >|
-|<      ><>      <>                      <>  <>      <??><  ><  IP  >|  
-|50325050060000001400000077FF015A000000000100100000000201PPPPXXXXXXXX|  
-|503250500D00000014000000EDFF0100000000000200110000000101PPPPXXXXXXXX|  
-|5032505006000000140000007DFF0100000000000300110000000101PPPPXXXXXXXX|  
-|503250500D0000001400000005FF0100000000000400110000000101PPPPXXXXXXXX|  
-|503250500D0000001400000028FF0100000000000500120000000101PPPPXXXXXXXX|  
+|<      ><><            ><>              <>  <>      <  ><  ><      >|    
 |---------------------------------------------------------------------  
 
-OFFSET 00-03  
-  MESSAGE HEADER  
+OFFSET 00-03 - MESSAGE HEADER 
+  UNKNOWN SIGNIFICANCE
+  OCCASSIONALLY PORT NUMBER
+
+OFFSET 04 - MESSAGE TYPE  
+  0x0A - MASTER <-> SLAVE
+  0x0D - MASTER -> SLAVE  
+  0xOE - MASTER <- SLAVE  
+
+OFFSET 05 - 11 
+  ALWAYS "00000014000000"
+
+OFFSET 12 - 14
+  UNKNOWN
 
 OFFSET 12  
   COUNTDOWN TIMER SEC TILL 1/4 HR  
 
-OFFSET 04  
-  0x01 = ?
-  0x02 = ?
-  0x07 = ?
-  0x0A = ? Packet Always 20 bytes  
-  0x0B = RDAC  
-  0x0C = ?  
-  0x0D = MASTER -> SLAVE  
-  0x0E = SLAVE -> MASTER  
-  
-OFFSET 08  
-  ALWAYS 0x14 
-
-Master => Slave Messages
+Master -> Slave Messages
 
 OFFSET 20  
-   NUMBER OF REPEATERS IN THIS MESSAGE  
+   NUMBER OF DEVEICES IN THIS MESSAGE  
 
 OFFSET 22  
-   0x10 = UNKNOWN ? STARTUP STATUS / CONTROL POSSIBLY  
+   0x10 = NEW / LEARNING  
    0x11 = VOICE / DATA  
    0x12 = RDAC  
 
 OFFSET 26-33  
-  Status?/PORT/IP ADDRESS OF Repeaters  
-  This 8 bytes append to end of packet for each repeater in message  
+  REPEATING FOR EACH DEVICE IN MESSAGE
 
-OFFSET 26 - 27  
-  Repeater Number in network or Status? Have seen  
-  0101, 0201, 0301, 0401, 0602  
+OFFSET 26
+  xx - Device Number in Network ( 01, 02, 03 ... )
+  
+OFFSET 27 
+  01 - REPEATER
+  02 - RDAC 
 
 OFFSET 29 - 28...  
     UPD PORT OF SLAVE REPEATER  
