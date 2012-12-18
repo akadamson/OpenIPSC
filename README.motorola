@@ -26,22 +26,22 @@ OFFSET: 0     Format ID L:A/GI
 OFFSET: 1-4   Repeater ID
 OFFSET: 5     Sequence Number
 OFFSET: 6-8   Source ID
-OFFSET: 9-11	  DestinationID
-OFFSET: 12      Priority Voice / Data
-OFFSET: 13-16   Call Control
-OFFSET: 17      Call Control Info
-OFFSET: 18      Controb Source ID
-OFFSET: 17b32   Timeslot
-OFFSET: 19      Payload Type
-OFFSET: 20-21   Sequence Number
-OFFSET: 22-25	  TimeStamp
-OFFSET: 26-29   SyncSrcID
-OFFSET: 30      DataTypeVoiceHeader
-OFFSET: 31      RSSI/threshold and parity values
-OFFSET: 32-33  	length to follow (words)
-OFFSET: 34     	RSSI Status
-OFFSET: 35      Slot Type Sync
-OFFSET: 36-37   Data Size
+OFFSET: 9-11  DestinationID
+OFFSET: 12    Priority Voice / Data
+OFFSET: 13-16 Call Control
+OFFSET: 17    Call Control Info
+OFFSET: 18    Controb Source ID
+OFFSET: 17b32 Timeslot
+OFFSET: 19    Payload Type
+OFFSET: 20-21 Sequence Number
+OFFSET: 22-25 TimeStamp
+OFFSET: 26-29 SyncSrcID
+OFFSET: 30    DataTypeVoiceHeader
+OFFSET: 31    RSSI/threshold and parity values
+OFFSET: 32-33 length to follow (words)
+OFFSET: 34    RSSI Status
+OFFSET: 35    Slot Type Sync
+OFFSET: 36-37 Data Size
 
 Portions of the UDP payload may be scrambled with RC4. CPS ( Customer programming software ) has a "authenciation key" field that is "40 characters 0-9, A-f". Possible that this value is used by the hardware as the keystream and not the key?
 
