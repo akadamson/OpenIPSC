@@ -32,6 +32,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #define NUMSLOTS 2					//DMR IS 2 SLOT 
 #define SLOT1 4369					//HEX 1111 
 #define SLOT2 8738					//HEX 2222 
+#define isDMR 4369					//HEX 1111 
 #define VCALL 4369					//HEX 1111
 #define DCALL 26214					//HEX 6666
 #define SYNC 61166					//HEX EEEE
@@ -52,13 +53,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #define DST_OFFSET1 32
 #define DST_OFFSET2 34
 #define DST_OFFSET3 36
-
-struct udphdr {
-        unsigned short int uh_sport;			//Source Port
-        unsigned short int uh_dport;			//Destnation Port
-        unsigned short int uh_ulen;			//Datagram Length
-        unsigned short int uh_sum;			//Datagram Checksum
-};
 
 struct str_slot {
         int status;					 //0 - UNKEYED. 1 - KEYED
@@ -153,23 +147,25 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
         tmp_repeater = (str_repeater*)malloc(sizeof(str_repeater));
         tmp_status = (str_status*)malloc(sizeof(str_status));
 	
-        unsigned int caplen = pkthdr->len;
-        unsigned int iplen;
+        int datalen = pkthdr->len;
+        int iplen;
+	
 	time_t unixtime;
 	unixtime = time(NULL);
         
 	packet += sizeof(struct ether_header);		//Walkthrough the ethernet header
-        capturelen -= sizeof(struct ether_header);	//and decerement the payload size
+        datalen -= sizeof(struct ether_header);		//and decerement the payload size
         
 	ip = (struct ip*) packet;			//setup the ip 
         packet += ip->ip_hl * 4;			//move past it
-        capturelen -= ip->ip_hl * 4;			//and decrement the payload size..
+        datalen -= ip->ip_hl * 4;			//and decrement the payload size..
 	
         udp = (struct udphdr *) packet;			//The Rest is UDP
         packet += sizeof(struct udphdr);		//move past 	
-        capturelen -= sizeof(struct udphdr);		//and decerment
+        datalen -= sizeof(struct udphdr);		//and decerment
 
-	if (capturelen == 72)
+	i
+	if ((datalen == 72) $$ ( ==  
 
 
 };
