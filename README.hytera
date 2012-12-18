@@ -73,10 +73,10 @@ OFFSET 22 - 23
   "6666" - Data Packet
   "1111" - Sync Packet
 
-OFFSET , , (SYNC Packets Only)
+OFFSET 32, 34, 36 (SYNC Packets Only)
   Destination ID Bytes ( Big Endian )
 
-OFFSET 38,40,42 ( Sync Packets Only )
+OFFSET 38, 40, 42 ( Sync Packets Only )
   Source ID Bytes ( Big Endian )
 
 OFFSET 26 - 38 plus high order nibble of 39 for 13.5 bytes
@@ -137,7 +137,7 @@ OFFSET 22
    0x11 = VOICE / DATA  
    0x12 = RDAC  
 
-OFFSET 26-33  
+OFFSET 26 - 33  
   REPEATING FOR EACH DEVICE IN MESSAGE
 
 OFFSET 26
