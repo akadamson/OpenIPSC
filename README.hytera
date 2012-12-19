@@ -97,26 +97,30 @@ OFFSET 64 - 66
 
 OFFSET 67 - 69 
   Source ID ( little endian ) - First Byte Missing
+-----------------------------------------------------------------------------------------
+
+Peer to Peer Messages  
+Used to communicat device status across the network 
 
 
 
 |--------------------------------------------------------------------|  
-|                        PEER 2 PEER MESSAGE                         |  
+|                        PEER 2 PEER MESSAGE TYPE D+E                |  
 |0                   1                   2                   3       |  
 |0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 |  
 |--------------------------------------------------------------------|  
+|<ASCII  ><><           ><>              <>  <>      <  ><  ><      >|    
 |                                                    <   REPEATING  >|
-|<      ><><            ><>              <>  <>      <  ><  ><      >|    
 |---------------------------------------------------------------------  
 
-OFFSET 00-03 - MESSAGE HEADER 
-  UNKNOWN SIGNIFICANCE
-  OCCASSIONALLY PORT NUMBER
+OFFSET 00-03  
+  ASCII : "PTPP" - Peer to Peer Message  
+  
 
 OFFSET 04 - MESSAGE TYPE  
-  0x0A - MASTER <-> SLAVE
+  
   0x0D - MASTER -> SLAVE  
-  0xOE - MASTER <- SLAVE  
+  0x0E - MASTER <- SLAVE  
 
 OFFSET 05 - 11 
   ALWAYS "00000014000000"
@@ -127,7 +131,7 @@ OFFSET 12 - 14
 OFFSET 12  
   COUNTDOWN TIMER SEC TILL 1/4 HR  
 
-Master -> Slave Messages
+-Master -> Slave Message
 
 OFFSET 20  
    NUMBER OF DEVEICES IN THIS MESSAGE  
@@ -138,7 +142,7 @@ OFFSET 22
    0x12 = RDAC  
 
 OFFSET 26 - 33  
-  REPEATING FOR EACH DEVICE IN MESSAGE
+  (PTPP M->S) REPEATING FOR EACH DEVICE IN MESSAGE
 
 OFFSET 26
   xx - Device Number in Network ( 01, 02, 03 ... )
@@ -152,3 +156,5 @@ OFFSET 29 - 28...
 
 OFFSET 30 - 33...  
     IP ADDRESS OF SLAVE REPEATER  
+
+-Slave -> Master Reply 
