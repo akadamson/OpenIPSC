@@ -29,30 +29,31 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #include<getopt.h>
 #include<time.h>
 
-#define NUMSLOTS 2					//DMR IS 2 SLOT 
-#define SLOT1 4369					//HEX 1111 
-#define SLOT2 8738					//HEX 2222 
-#define isDMR 4369					//HEX 1111 
-#define VCALL 4369					//HEX 1111
-#define DCALL 26214					//HEX 6666
-#define SYNC 61166					//HEX EEEE
+#define NUMSLOTS 2				
+#define SLOT1  0x1111		
+#define SLOT2  0x2222		
+#define isDMR1 0x1111				
+#define PTPFLAG 0x14		//PTP MSG FLAG IS 00000014000000
+#define VCALL  0x1111					
+#define DCALL  0x6666				
+#define SYNC   0xEEEE				
 
-#define VFRAMESIZE 72					//UDP PAYLOAD SIZE OF REPEATER VOICE/DATA TRAFFIC
+#define VFRAMESIZE 	0x48					//UDP PAYLOAD SIZE OF REPEATER VOICE/DATA TRAFFIC
 
-#define SLOT_OFFSET1 16
-#define SLOT_OFFSET2 17
-#define PACKET_TYPE1 18
-#define PACKET_TYPE2 19
-#define DMR_OFFSET1 20
-#define DMR_OFFSET2 21
-#define SYNC_OFFSET1 22
-#define SYNC_OFFSET2 23	
-#define SRC_OFFSET1 38				
-#define SRC_OFFSET2 40
-#define SRC_OFFSET3 42
-#define DST_OFFSET1 32
-#define DST_OFFSET2 34
-#define DST_OFFSET3 36
+#define SLOT_OFFSET1 	16
+#define SLOT_OFFSET2 	17
+#define PACKET_TYPE1 	18
+#define PACKET_TYPE2 	19
+#define DMR_OFFSET 	20				//VOICE 
+#define PTPFLAG_OFFSET 	5				//STATUS
+#define SYNC_OFFSET1 	22
+#define SYNC_OFFSET2 	23	
+#define SRC_OFFSET1 	38				
+#define SRC_OFFSET2 	40
+#define SRC_OFFSET3 	42
+#define DST_OFFSET1 	32
+#define DST_OFFSET2 	34
+#define DST_OFFSET3 	36
 
 struct str_slot {
         int status;					 //0 - UNKEYED. 1 - KEYED
@@ -148,7 +149,10 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
         tmp_status = (str_status*)malloc(sizeof(str_status));
 	
         int datalen = pkthdr->len;
-        int iplen;
+        int ipleni =0;
+	int isdata = 0;
+	int isstatus = 0;
+	int i = 0;
 	
 	time_t unixtime;
 	unixtime = time(NULL);
@@ -164,10 +168,27 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
         packet += sizeof(struct udphdr);		//move past 	
         datalen -= sizeof(struct udphdr);		//and decerment
 
-	i
-	if ((datalen == 72) $$ ( ==  
+	if (datalen == 72) {				//Packet is same size as DMR voice/data
+		isdata = (*(packet + DMR_OFFSET) << 8 | *(packet + (DMR_OFFSET + 1)));
+		if (isdata) {				
+			printf("D");
+			// DO THE VOICE / DATA ANYALISS
 
-
+		};
+	};
+		
+	if ((*(packet+PTPFLAG_OFFSET  ) == 0) &&
+	    (*(packet+PTPFLAG_OFFSET+1) == 0) &&
+	    (*(packet+PTPFLAG_OFFSET+2) == 0) &&
+	    (*(packet+PTPFLAG_OFFSET+3) == PTPFLAG) &&
+	    (*(packet+PTPFLAG_OFFSET+4) == 0) &&
+	    (*(packet+PTPFLAG_OFFSET+5) == 0) &&
+	    (*(packet+PTPFLAG_OFFSET+6) == 0)) {
+		while (i < capture_len) {
+                       printf("%02X", packet[i]);
+                        i++;
+	};
+	printf("\n");	
 };
 
 int main(int argc, char *argv[])
