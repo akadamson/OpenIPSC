@@ -30,13 +30,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #include<time.h>
 
 #define NUMSLOTS 2				
-#define SLOT1  0x1111		
-#define SLOT2  0x2222		
-#define isDMR1 0x1111				
-#define PTPFLAG 0x14		//PTP MSG FLAG IS 00000014000000
-#define VCALL  0x1111					
-#define DCALL  0x6666				
-#define SYNC   0xEEEE				
+#define SLOT1    0x1111		
+#define SLOT2    0x2222		
+#define DMR      0x1111				
+#define PTP      0x14		//PTP MSG FLAG IS 00000014000000
+#define VCALL    0x1111					
+#define DCALL    0x6666				
+#define SYNC     0xEEEE				
 
 #define VFRAMESIZE 	0x48					//UDP PAYLOAD SIZE OF REPEATER VOICE/DATA TRAFFIC
 
@@ -45,7 +45,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #define PACKET_TYPE1 	18
 #define PACKET_TYPE2 	19
 #define DMR_OFFSET 	20				//VOICE 
-#define PTPFLAG_OFFSET 	5				//STATUS
+#define PTP_OFFSET 	5				//STATUS
 #define SYNC_OFFSET1 	22
 #define SYNC_OFFSET2 	23	
 #define SRC_OFFSET1 	38				
@@ -153,10 +153,10 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
 	int isdata = 0;
 	int isstatus = 0;
 	int i = 0;
-	
-	time_t unixtime;
-	unixtime = time(NULL);
-        
+        int process = 0;	
+	time_t Time;
+       	char* c_time_string;
+	 
 	packet += sizeof(struct ether_header);		//Walkthrough the ethernet header
         datalen -= sizeof(struct ether_header);		//and decerement the payload size
         
@@ -168,27 +168,31 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
         packet += sizeof(struct udphdr);		//move past 	
         datalen -= sizeof(struct udphdr);		//and decerment
 
-	if (datalen == 72) {				//Packet is same size as DMR voice/data
-		isdata = (*(packet + DMR_OFFSET) << 8 | *(packet + (DMR_OFFSET + 1)));
-		if (isdata) {				
-			printf("D");
-			// DO THE VOICE / DATA ANYALISS
+	isdata = (*(packet + DMR_OFFSET) << 8 | *(packet + (DMR_OFFSET + 1)));
 
-		};
+	if ((datalen == 72) && (isdata)) {				//Packet is same size as DMR voice/data
+               process =1 ;
+	}
+	else if 
+	   ((*(packet+PTP_OFFSET  ) == 0) && (*(packet+PTP_OFFSET+1) == 0) && (*(packet+PTP_OFFSET+2) == 0) && (*(packet+PTP_OFFSET+3) == PTP) && (*(packet+PTP_OFFSET+4) == 0) && (*(packet+PTP_OFFSET+5) == 0) && (*(packet+PTP_OFFSET+6) == 0)) {
+		process = 1;
 	};
-		
-	if ((*(packet+PTPFLAG_OFFSET  ) == 0) &&
-	    (*(packet+PTPFLAG_OFFSET+1) == 0) &&
-	    (*(packet+PTPFLAG_OFFSET+2) == 0) &&
-	    (*(packet+PTPFLAG_OFFSET+3) == PTPFLAG) &&
-	    (*(packet+PTPFLAG_OFFSET+4) == 0) &&
-	    (*(packet+PTPFLAG_OFFSET+5) == 0) &&
-	    (*(packet+PTPFLAG_OFFSET+6) == 0)) {
-		while (i < capture_len) {
+	if ((debug ==1)&& (process ==1)){
+		Time = time(NULL);
+		c_time_string = time(&Time);
+                printf("L:%3i ",datalen);
+                printf("T:%10ju ",(uintmax_t)Time);
+                printf("S:%15s ",inet_ntoa(ip->ip_src));
+                printf(":%5d ",ntohs(udp->source));
+                printf("D:%15s", inet_ntoa(ip->ip_dst));
+                printf(":%5d ",ntohs(udp->dest));
+                while (i < datalen) {
                        printf("%02X", packet[i]);
                         i++;
+                };
+	        printf("\n");
 	};
-	printf("\n");	
+	fflush(stdout);
 };
 
 int main(int argc, char *argv[])
@@ -227,9 +231,9 @@ int main(int argc, char *argv[])
         }
         pcap_if_t *alldevsp , *device;
         pcap_t *handle;
-        char errbuf[100] , devs[100][100];
-        int count = 1 , n;
-        handle = pcap_open_live(devname , 65536 , 1 , 0 , errbuf);
+	int count =1;
+	char errbuf[100] , devs[100][100];
+        handle = pcap_open_live(devname , 65536 , 1 , 0, errbuf);
 
         if (handle == NULL) {
                 fprintf(stderr, "Couldn't open device %s : %s\n" , devname , errbuf);
