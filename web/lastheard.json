@@ -1,0 +1,103 @@
+<?php 
+// netstatus.phps - Fetch networkstatus from database and create json file for remote web servers / clients
+//Copyright (C) 2012 David Kierzokwski (kd8eyf@digitalham.info)
+//
+//This program is free software; you can redistribute it and/or
+//modify it under the terms of the GNU General Public License
+//as published by the Free Software Foundation; either version 2
+//of the License, or (at your option) any later version.
+//
+//This program is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU General Public License for more details.
+//
+//You should have received a copy of the GNU General Public License
+//along with this program; if not, write to the Free Software
+//Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+header( 'Content-Type: application/json; charset=utf-8' ) ;
+include '/usr/local/include/dmrdb.inc' ;
+error_reporting( E_ERROR | E_WARNING | E_PARSE ) ;
+date_default_timezone_set( 'UTC' ) ;
+$Lastheard = array() ;
+$LastHeard[ColumnNames][StartTime] = "Time";
+$LastHeard[ColumnNames][DmrID] = "User ID";
+$LastHeard[ColumnNames][UserCallsign] = "Callsign";
+$LastHeard[ColumnNames][UserName] = "Name";
+$LastHeard[ColumnNames][RepeterCallsign] = "Repeater";
+$LastHeard[ColumnNames][RepeaterCity] = "Location";
+$LastHeard[ColumnNames][TimeSlot] = "Slot";
+$LastHeard[ColumnNames][DestinationID] = "TG";        
+$LastHeard[ColumnNames][NetworkDescription] = "Net";
+$Query = "
+        SELECT
+                 `LastHeard`.`DmrID`		AS `DmrID`
+                ,`LastHeard`.`StartTime`	AS `StartTime`
+                ,`LastHeard`.`SourceNet`	AS `SourceNet`
+                ,`LastHeard`.`TimeSlot`		AS `TimeSlot`
+                ,`LastHeard`.`RepeaterID`	AS `RepeaterID`
+                ,`LastHeard`.`DestinationID`	AS `DestinationID`
+                ,`User`.`Callsign`              AS `UserCallsign`
+                ,`User`.`Name`                  AS `UserName`
+                ,`Network`.`Description`     AS `NetworkDescription`
+                ,`Repeater`.`Short`          AS `Short`
+                ,`Repeater`.`City`           AS `RepeaterCity`
+                ,`Repeater`.`CallSign`       AS `RepeaterCallsign`
+                ,`Talkgroup`.`Assignment`    AS `Talkgroup`
+        FROM
+                `LastHeard`
+        LEFT JOIN
+                `User`
+        ON
+                `LastHeard`.`DmrID` = `User`.`DmrID`
+        LEFT JOIN
+                `Network`
+        ON
+                `LastHeard`.`SourceNet` = `Network`.`DmrID`
+        LEFT JOIN
+                `Repeater`
+        ON
+                `LastHeard`.`RepeaterID` = `Repeater`.`DmrID`
+        LEFT JOIN
+                `Talkgroup`
+        ON
+                `LastHeard`.`DestinationID` = `Talkgroup`.`DmrID`
+	WHERE
+		`LastHeard`.`DmrID` LIKE '_______'
+        ORDER BY  `LastHeard`.`StartTime` DESC LIMIT 30";
+	$Result = mysql_query( $Query ) or die( mysql_errno . " " . mysql_error() ) ;
+	while ( $Row = mysql_fetch_array( $Result ) ) {
+		$i++;
+		$LastHeard[LastHeard]["$i"][StartTime] = $Row[StartTime] ; 
+	    	$LastHeard[LastHeard]["$i"][DmrID] = $Row[DmrID] ;
+		$LastHeard[LastHeard]["$i"][UserCallsign] = $Row[UserCallsign] ;
+		$LastHeard[LastHeard]["$i"][UserName] = $Row[UserName] ;
+		$LastHeard[LastHeard]["$i"][RepeaterID] = $Row[RepeaterID]." - ".$Row[RepeaterCallsign];
+		$LastHeard[LastHeard]["$i"][RepeaterCity] = $Row[RepeaterCity] ;
+		$LastHeard[LastHeard]["$i"][TimeSlot] = $Row[TimeSlot];
+		$LastHeard[LastHeard]["$i"][DestinationID] = $Row[DestinationID]." - ".$Row[Talkgroup];
+		$LastHeard[LastHeard]["$i"][Network] = $Row[SourceNet];
+};
+
+
+echo json_encode( $LastHeard ) ; 
+
+function duration( $seconds )
+{
+	$days = floor( $seconds / 60 / 60 / 24 ) ;
+	$hours = $seconds / 60 / 60 % 24 ;
+	$mins = $seconds / 60 % 60 ;
+	$secs = $seconds % 60 ;
+	$duration = '' ;
+	if ( $days > 0 ) {
+		$duration = "$days"."D" ;
+	} elseif ( $hours > 0 ) $duration .= "$hours" . "H" ;
+	if ( $mins > 0 ) $duration .= "$mins" . "M" ;
+	if ( ( $secs > 0 ) && ( $hours < 1 ) && ( $mins < 10 ) ) $duration .= "$secs" .
+			"S" ;
+	$duration = trim( $duration ) ;
+	if ( $duration == null ) $duration = '0' . 'S' ;
+    if ($seconds >= 1000000000) $duration = "NEVER";
+	return $duration ;
+} 
+?>
