@@ -40,20 +40,41 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 
 #define VFRAMESIZE 	0x48					//UDP PAYLOAD SIZE OF REPEATER VOICE/DATA TRAFFIC
 
-#define SLOT_OFFSET1 	16
-#define SLOT_OFFSET2 	17
-#define PACKET_TYPE1 	18
-#define PACKET_TYPE2 	19
+#define SLOT_OFFSET 	16
+#define SYNC_OFFSET 	18
 #define DMR_OFFSET 	20				//VOICE 
 #define PTP_OFFSET 	5				//STATUS
-#define SYNC_OFFSET1 	22
-#define SYNC_OFFSET2 	23	
+#define PTPP_OFFSET 	6
+#define PTPP_MS		0x0D
 #define SRC_OFFSET1 	38				
 #define SRC_OFFSET2 	40
 #define SRC_OFFSET3 	42
 #define DST_OFFSET1 	32
 #define DST_OFFSET2 	34
 #define DST_OFFSET3 	36
+
+#define MAX_REPEATERS 	16
+
+typedef struct str_dev_string{
+        uint8_t flag1;
+        uint8_t flag2;
+        uint16_t udp_port;
+        struct in_addr ip_address;
+}str_dev_string;
+
+typedef struct str_ptpp_msg {
+	int32_t header;
+	uint8_t msgtype;
+	char null1[9];
+	uint8_t seq;
+	uint8_t flag1;
+	uint8_t flag2;
+  	uint8_t flag3;
+	uint8_t flag4;
+	int32_t null2;
+	uint8_t num_devices;	
+	struct str_dev_string dev_string[MAX_REPEATERS];
+} str_ptpp_msg;
 
 struct str_slot {
         int status;					 //0 - UNKEYED. 1 - KEYED
@@ -142,16 +163,18 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
 {
         struct ip *ip;
         struct udphdr *udp;
+	struct str_ptpp_msg *ptpp_msg;
 
         str_status *tmp_status;
         str_repeater *tmp_repeater;
-        tmp_repeater = (str_repeater*)malloc(sizeof(str_repeater));
+        
+	tmp_repeater = (str_repeater*)malloc(sizeof(str_repeater));
         tmp_status = (str_status*)malloc(sizeof(str_status));
-	
+		
         int datalen = pkthdr->len;
         int ipleni =0;
 	int isdata = 0;
-	int isstatus = 0;
+	int issync = 0;
 	int i = 0;
         int process = 0;	
 	time_t Time;
@@ -169,17 +192,16 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
         datalen -= sizeof(struct udphdr);		//and decerment
 
 	isdata = (*(packet + DMR_OFFSET) << 8 | *(packet + (DMR_OFFSET + 1)));
-
-	if ((datalen == 72) && (isdata)) {				//Packet is same size as DMR voice/data
-               process =0 ;
+	issync = (*(packet + SYNC_OFFSET) << 8 | *(packet + (SYNC_OFFSET + 1)));
+	if ((datalen == 72) && (isdata) && (issync)) {				//Packet is same size as DMR voice/data
+               
 	}
-	else if 
-	   (((*(packet+0)) << 24 |
-            (*(packet+1)) << 16 |
-            (*(packet+2)) << 8  |
-	    (*(packet+3))) == PTPP) {
+	else if ((((*(packet+0)) << 24 | (*(packet+1)) << 16 | (*(packet+2)) << 8  | (*(packet+3))) == PTPP) && (*(packet+ PTPP_OFFSET)) == PTPP_MS ){
+		ptpp_msg = (struct str_ptpp_msg*) packet;
 		process = 1;
 	};
+		
+		
 	if ((debug ==1)&& (process ==1)){
 		Time = time(NULL);
 		c_time_string = time(&Time);
@@ -189,6 +211,8 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
                 printf(":%5d ",ntohs(udp->source));
                 printf("D:%15s", inet_ntoa(ip->ip_dst));
                 printf(":%5d ",ntohs(udp->dest));
+		printf("MSG TYPE: %i" ptpp_msg->msgtype;);
+	
                 while (i < datalen) {
                        printf("%02X", packet[i]);
                         i++;
