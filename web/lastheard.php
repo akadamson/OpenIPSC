@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="netstatus.css" type="text/css">
     <div id="header" class="fixed">
         <div class="logo">
-	 	<img src="logo.png" border="0" width="300" height="75" alt="logo" />
+	 	<img src="hyteralogo.png" border="0" width="300" height="75" alt="logo" />
         </div>
         <div class="nav">
             <ul>
@@ -44,7 +44,7 @@
     <div id="content" class="fixed"> 
         <div id="maincontent">
             <h2>Last Heard List</h2><?            
-$state_location = "http://dmr.moses.bz/lastheard.json";
+$state_location = "http://127.0.0.1/lastheard.json";
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $state_location);
 curl_setopt($ch, CURLOPT_HEADER, 0);

@@ -28,7 +28,6 @@ $LastHeard[ColumnNames][RepeterCallsign] = "Repeater";
 $LastHeard[ColumnNames][RepeaterCity] = "Location";
 $LastHeard[ColumnNames][TimeSlot] = "Slot";
 $LastHeard[ColumnNames][DestinationID] = "TG";        
-$LastHeard[ColumnNames][NetworkDescription] = "Net";
 $Query = "
         SELECT
                  `LastHeard`.`DmrID`		AS `DmrID`
@@ -72,11 +71,10 @@ $Query = "
 	    	$LastHeard[LastHeard]["$i"][DmrID] = $Row[DmrID] ;
 		$LastHeard[LastHeard]["$i"][UserCallsign] = $Row[UserCallsign] ;
 		$LastHeard[LastHeard]["$i"][UserName] = $Row[UserName] ;
-		$LastHeard[LastHeard]["$i"][RepeaterID] = $Row[RepeaterID]." - ".$Row[RepeaterCallsign];
+		$LastHeard[LastHeard]["$i"][RepeaterID] = $Row[RepeaterCallsign];
 		$LastHeard[LastHeard]["$i"][RepeaterCity] = $Row[RepeaterCity] ;
 		$LastHeard[LastHeard]["$i"][TimeSlot] = $Row[TimeSlot];
 		$LastHeard[LastHeard]["$i"][DestinationID] = $Row[DestinationID]." - ".$Row[Talkgroup];
-		$LastHeard[LastHeard]["$i"][Network] = $Row[SourceNet];
 };
 
 
