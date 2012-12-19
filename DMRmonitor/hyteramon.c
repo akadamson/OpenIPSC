@@ -33,7 +33,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #define SLOT1    0x1111		
 #define SLOT2    0x2222		
 #define DMR      0x1111				
-#define PTP      0x14		//PTP MSG FLAG IS 00000014000000
+#define PTPP	 0x50325050
 #define VCALL    0x1111					
 #define DCALL    0x6666				
 #define SYNC     0xEEEE				
@@ -171,10 +171,13 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
 	isdata = (*(packet + DMR_OFFSET) << 8 | *(packet + (DMR_OFFSET + 1)));
 
 	if ((datalen == 72) && (isdata)) {				//Packet is same size as DMR voice/data
-               process =1 ;
+               process =0 ;
 	}
 	else if 
-	   ((*(packet+PTP_OFFSET  ) == 0) && (*(packet+PTP_OFFSET+1) == 0) && (*(packet+PTP_OFFSET+2) == 0) && (*(packet+PTP_OFFSET+3) == PTP) && (*(packet+PTP_OFFSET+4) == 0) && (*(packet+PTP_OFFSET+5) == 0) && (*(packet+PTP_OFFSET+6) == 0)) {
+	   (((*(packet+0)) << 24 |
+            (*(packet+1)) << 16 |
+            (*(packet+2)) << 8  |
+	    (*(packet+3))) == PTPP) {
 		process = 1;
 	};
 	if ((debug ==1)&& (process ==1)){
