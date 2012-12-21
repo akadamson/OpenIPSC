@@ -75,6 +75,7 @@ typedef struct str_ptpp_msg {
 	uint8_t num_devices;	
 	char null3;
 	uint8_t service;
+	char null5[2];
 } str_ptpp_msg;
 
 struct str_slot {
@@ -216,7 +217,7 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
 	                        dev_string = (struct str_dev_string*) packet;
         	                packet += sizeof(struct str_dev_string);
                 	        i++;
-                        	printf("%i: flag1: %x flag2: %x IP:%s  \n", i,dev_string->flag1, dev_string->flag2);//,  inet_ntoa(dev_string->ip_address),  ntohs(dev_string->udp_port));
+                        	printf("%i: flag1: %x flag2: %x IP:  \n", i,dev_string->flag1, dev_string->flag2);//,  inet_ntoa(dev_string->ip_address),  ntohs(dev_string->udp_port));
 	                };
 		};
 	};
