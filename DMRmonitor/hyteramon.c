@@ -53,27 +53,28 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. 
 #define DST_OFFSET2 	34
 #define DST_OFFSET3 	36
 
-#define MAX_REPEATERS 	16
+#define MAX_REPEATERS 	1
 
 typedef struct str_dev_string{
-        uint8_t flag1;
+	uint8_t flag1;
         uint8_t flag2;
-        uint16_t udp_port;
-        struct in_addr ip_address;
+	//uint16_t udp_port;
+	//struct in_addr ip_address;
 }str_dev_string;
 
 typedef struct str_ptpp_msg {
 	int32_t header;
 	uint8_t msgtype;
-	char null1[9];
+	char null1[7];
 	uint8_t seq;
 	uint8_t flag1;
 	uint8_t flag2;
   	uint8_t flag3;
 	uint8_t flag4;
-	int32_t null2;
+	char null2[3];	
 	uint8_t num_devices;	
-	struct str_dev_string dev_string[MAX_REPEATERS];
+	char null3;
+	uint8_t service;
 } str_ptpp_msg;
 
 struct str_slot {
@@ -164,6 +165,7 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
         struct ip *ip;
         struct udphdr *udp;
 	struct str_ptpp_msg *ptpp_msg;
+	struct str_dev_string *dev_string;
 
         str_status *tmp_status;
         str_repeater *tmp_repeater;
@@ -193,31 +195,41 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
 
 	isdata = (*(packet + DMR_OFFSET) << 8 | *(packet + (DMR_OFFSET + 1)));
 	issync = (*(packet + SYNC_OFFSET) << 8 | *(packet + (SYNC_OFFSET + 1)));
+	
 	if ((datalen == 72) && (isdata) && (issync)) {				//Packet is same size as DMR voice/data
-               
 	}
-	else if ((((*(packet+0)) << 24 | (*(packet+1)) << 16 | (*(packet+2)) << 8  | (*(packet+3))) == PTPP) && (*(packet+ PTPP_OFFSET)) == PTPP_MS ){
-		ptpp_msg = (struct str_ptpp_msg*) packet;
-		process = 1;
+	else if ((((*(packet+0)) << 24 | (*(packet+1)) << 16 | (*(packet+2)) << 8  | (*(packet+3))) == PTPP)){
+		ptpp_msg = (struct str_ptpp_msg*) packet;	
+		packet += sizeof(struct str_ptpp_msg);
+		datalen -= sizeof(struct str_ptpp_msg);
+
+		if (ptpp_msg->msgtype == PTPP_MS) {
+			while (i < datalen) {
+        			printf("%02X", packet[i]);
+	                        i++;
+	                };
+			printf("\n");
+			i = 0;
+			process = 1;
+			while (i < ptpp_msg->num_devices){
+                        	printf ("%i ",i);
+	                        dev_string = (struct str_dev_string*) packet;
+        	                packet += sizeof(struct str_dev_string);
+                	        i++;
+                        	printf("%i: flag1: %x flag2: %x IP:%s  \n", i,dev_string->flag1, dev_string->flag2);//,  inet_ntoa(dev_string->ip_address),  ntohs(dev_string->udp_port));
+	                };
+		};
 	};
 		
 		
-	if ((debug ==1)&& (process ==1)){
+	if ((debug ==1)&& (process ==1) ){
 		Time = time(NULL);
 		c_time_string = time(&Time);
-                printf("L:%3i ",datalen);
-                printf("T:%10ju ",(uintmax_t)Time);
-                printf("S:%15s ",inet_ntoa(ip->ip_src));
-                printf(":%5d ",ntohs(udp->source));
-                printf("D:%15s", inet_ntoa(ip->ip_dst));
-                printf(":%5d ",ntohs(udp->dest));
-		printf("MSG TYPE: %i" ptpp_msg->msgtype;);
-	
-                while (i < datalen) {
-                       printf("%02X", packet[i]);
-                        i++;
-                };
-	        printf("\n");
+		//printf("TYP:%x ",ptpp_msg->msgtype);
+		//printf("NUM:%i ",ptpp_msg->num_devices);
+		//printf("SEQ:%x ",ptpp_msg->seq);
+		//printf("SVC:%x ",ptpp_msg->service); 
+	        //printf("\n");
 	};
 	fflush(stdout);
 };
