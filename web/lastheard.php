@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="netstatus.css" type="text/css">
     <div id="header" class="fixed">
         <div class="logo">
-	 	<img src="hyteralogo.png" border="0" width="300" height="75" alt="logo" />
+	 	<img src="hyteralogo.png" border="0" height="75" alt="logo"/>
         </div>
         <div class="nav">
             <ul>
