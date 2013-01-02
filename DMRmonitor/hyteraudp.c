@@ -42,7 +42,6 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
         struct UDP_hdr * udp;
         unsigned int IP_header_length;
         unsigned int capture_len = pkthdr->len;
-        char buffer[15];				// Used for temporay data conversions since i dont know how to program yet :)
         int PacketType;
         long value;
         int i=0, *counter = (int *)arg;
@@ -76,9 +75,8 @@ void processPacket(u_char *arg, const struct pcap_pkthdr* pkthdr, const u_char *
                        printf("%02X", packet[i]);
                         i++;
                };
-        printf("\n");
+	printf("\n");
 	fflush(stdout);
-
 }
 int main(int argc, char *argv[] )
 {

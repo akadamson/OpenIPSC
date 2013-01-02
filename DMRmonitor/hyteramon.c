@@ -212,13 +212,11 @@ void processPacket(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
 			printf("\n");
 			i = 0;
 			process = 1;
-			while (i < ptpp_msg->num_devices){
-                        	printf ("%i ",i);
-	                        dev_string = (struct str_dev_string*) packet;
-        	                packet += sizeof(struct str_dev_string);
-                	        i++;
-                        	printf("%i: flag1: %x flag2: %x IP:  \n", i,dev_string->flag1, dev_string->flag2);//,  inet_ntoa(dev_string->ip_address),  ntohs(dev_string->udp_port));
-	                };
+			//while (i < ptpp_msg->num_devices){
+	                  //      dev_string = (struct str_dev_string*) packet;
+        	                //packet += sizeof(struct str_dev_string);
+                	    //    i++;
+                        	//printf("%i: flag1: %x flag2: %x IP:  \n", i,dev_string->flag1, dev_string->flag2);//,  inet_ntoa(dev_string->ip_address),  ntohs(dev_string->udp_port));
 		};
 	};
 		
