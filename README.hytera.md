@@ -129,15 +129,14 @@ New device setup and keep alive messging method
 |    Client                 Server                Peers      |Packet Type|
 |------------------------------------------------------------|-----------|
 |                                                            |           |
-|Hello            	                             |\  0x01    |
+|Hello            	                                          |\  0x01    |
 |Can Do PTPP     ----->                                      |/          |
 |                                                            |           | 
-|			 Ack. Assign                         |\  0x02    |
+|			                     Ack. Assign                         |\  0x02    |
 |                <-----  PTPP Dev Num                        |/          |
 |                                                            |           |
 |                        New device                          |\  0x06    |
 |                        Seen@IP:port  ----->                |/          |
-|                                                            |           |
 |                                                            |           |
 |Can Do DMR                                                  |\  0x01    |
 |(from DMR PORT) ----->                                      |/          |
@@ -160,6 +159,8 @@ New device setup and keep alive messging method
 |                        List of all                         |\          |
 |                <-----  other RDAC    ----->                | - 0x06    |
 |                        dev on net                          |/          |
+|                                                            |           |
+| ACK. List      ----->                <-----   ACK. LIST    |   0x07    |
 |                                                            |           |
 |-------------------new device setup done---------------------------------
 |                                                            |           |
