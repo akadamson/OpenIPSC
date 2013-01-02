@@ -10,21 +10,21 @@ Three main types of packets all UDP, each set at the repeater to run on a specif
 |0                   1                   2                   3                   4                   5                   6                   7   | 
 |0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 |
 |------------------------------------------------------------------------------------------------------------------------------------------------|
-|<4 BYTE><>      <><ASCI>        <sn><pt><df><dt>    <---- AMBE+2 VOICE  ----> <--SYNC --> <---- AMBE+2 VOICE    ---->       <>  <gid ><sid >    |
+|<4 BYTE><>      <><ASCI>        <sn><pt>1111<dt>    <---- AMBE+2 VOICE  ----> <--SYNC --> <---- AMBE+2 VOICE    ---->       <>  <gid ><sid >    |
 |------------------------------------------------------------------------------------------------------------------------------------------------|
 ```
 
 
 | Offset | Len | Format / Value          |Note               |
 | ------ | ------  | --------------------|:----------------- |
-|  00    |  2      |   ASCII "ZZZZ"      | Indicates Remote repeater(maybe master) always denoted with pattern at offset 0x08  |
+|  00    |  2      |   ASCII "ZZZZ"      | Header            |
 |  00    |  2      |   0-65535           | UDP Port Number   | 
 |  04    |  1      |   0-255             | Sequence Number   | 
 |  08    |  1      |   Num               | Packet Type       | 
 |  09    |  3      |   ASCII "ZZZ"       | Special ASCII     |
 |  16    |  2      |   ASCII             | Slot Number  (sn) |
 |  18    |  2      |   ASCII             | Packet Type 2(pt) |
-|  20    |  2      |   ASCII             | DMR Flag     (df) |
+|  20    |  2      |   ASCII             | Flag always 1111  |
 |  22    |  2      |   ASCII             | Data Type    (dt) |
 |  26    |  13.5   |   RAW               | AMBE+2 Payload 1  |
 |  38.5  |  6      |   RAW               | DMR Sync          |
@@ -33,6 +33,8 @@ Three main types of packets all UDP, each set at the repeater to run on a specif
 |  64    |  3      |   Num 16bLE         | Destination Group |
 |  67    |  3      |   Num 16bLE         | Source ID *Bug    |
 
+####Header
+Indicates Remote repeater(maybe master) always denoted with pattern at offset 0x08
 
 ####Sequence Number
  Looping 0x00-0xFF for each packet or set of packets. Does not Increment for Sync Frames. 
@@ -122,5 +124,64 @@ Sent every 60 Seconds During idle and active state. Unid. repeater datablock sta
 
 
 ## Networking Packet ##
-
+New device setup and keep alive messging method
+```
+|    Client                 Server                Peers      |Packet Type|
+|------------------------------------------------------------|-----------|
+|                                                            |           |
+|Hello            	                             |\  0x01    |
+|Can Do PTPP     ----->                                      |/          |
+|                                                            |           | 
+|			 Ack. Assign                         |\  0x02    |
+|                <-----  PTPP Dev Num                        |/          |
+|                                                            |           |
+|                        New device                          |\  0x06    |
+|                        Seen@IP:port  ----->                |/          |
+|                                                            |           |
+|                                                            |           |
+|Can Do DMR                                                  |\  0x01    |
+|(from DMR PORT) ----->                                      |/          |
+|                                                            |           |
+|                        Ack. Assign                         |\  0x02    |
+|                <-----  DMR Dev Num                         |/          |
+|                                                            |           |
+|                        List of all                         |\          |
+|                <-----  other dmr     ----->                | - 0x06    |
+|                        dev on net                          |/          |
+|                                                            |           |
+| ACK. List      ----->                <-----   ACK. LIST    |   0x07    |
+|                                                            |           |
+|Can Do RDAC                                                 |\  0x01    |
+|(from RDAC PORT)----->                                      |/          |
+|                                                            |           |
+|                        Ack. Assign                         |\  0x02    |
+|                <-----  RDAC Dev Num                        |/          |
+|                                                            |           |
+|                        List of all                         |\          |
+|                <-----  other RDAC    ----->                | - 0x06    |
+|                        dev on net                          |/          |
+|                                                            |           |
+|-------------------new device setup done---------------------------------
+|                                                            |           |
+|                         DMR,  RDAC                         |\          |
+|                <-----   DEV  TABLE   ----->                | - 0x0D    |
+|                        (rep 20 sec)                        |/          |
+|                                                            |           |                                                            |           |
+| ACK. Table     ----->                                      |\  0x0E    |
+|                                      <-----   ACK. Table   |/  0x0E    |
+|                                                            |           |
+|                                                            |           |
+|                <----- Heart Beat req ----->                |   0x0A    |
+|                        (rep 7 sec)                         |   0x0A    |
+| Heart Beat req ----->                <----- Heart Beat Req |   0x0A    |
+| Heart Beat req --------------------------->                |   0x0A    |
+|                <--------------------------- Heart Beat Req |   0x0A    |
+|                                                            |           |
+|                <----- Heart Beat ACK ----->                |   NULL    |
+|                ---------------------------> Heart Beat ACK |   NULL    |
+| Heart Beat ACK --------------------------->                |   NULL    |
+|                -----> Heart Beat ACK <-----                |   NULL    |
+|                   (ack on service port)                    |           |
+|------------------------------------------------------------|-----------|
+```
 ## RDAC Packet ##
