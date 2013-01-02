@@ -103,10 +103,10 @@ Offset 26 to high order nibble of 39 and low order nibble 44 through 58.
 |------------------------------------------------------------------------------------------------------------------------------------------------|
 ```
 ####Destination ID
-Bits At Offset 32, 34, 36, each prepended with 0x00
+Bytes At Offset 32, 34, 36, each prepended with 0x00
 
 ####Source Radio ID
-Bits At Offset 38, 40, 42, each prepended with 0x00
+Bytes At Offset 38, 40, 42, each prepended with 0x00
 
 ###Status Service Packets
 Sent every 60 Seconds During idle and active state. Unid. repeater datablock starting at offset 24. 
