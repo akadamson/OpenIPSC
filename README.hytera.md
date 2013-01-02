@@ -1,162 +1,114 @@
-#Hytera "Multi Site Connect" Protocol  
+#Hytera "IP Multi Site Connect" Protocol  
+Three main types of packets all UDP, each set at the repeater to run on a specific port.
+* Networking - Exchange Information about other devices and service in the network
+* Service - Voice and Data 
+* RDAC - For remote diagnostic and control of Devices
 
-##VOICE / DATA PACKETS  
+##Service Packet
+```
+|------------------------------------------------------------------------------------------------------------------------------------------------|
+|0                   1                   2                   3                   4                   5                   6                   7   | 
+|0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 |
+|------------------------------------------------------------------------------------------------------------------------------------------------|
+|<4 BYTE><>      <><ASCI>        <sn><pt><df><dt>    <---- AMBE+2 VOICE  ----> <--SYNC --> <---- AMBE+2 VOICE    ---->       <>  <gid ><sid >    |
+|------------------------------------------------------------------------------------------------------------------------------------------------|
+```
+
+
+| Offset | Len | Format / Value          |Note               |
+| ------ | ------  | --------------------|:----------------- |
+|  00    |  2      |   ASCII "ZZZZ"      | Indicates Remote repeater(maybe master) always denoted with pattern at offset 0x08  |
+|  00    |  2      |   0-65535           | UDP Port Number   | 
+|  04    |  1      |   0-255             | Sequence Number   | 
+|  08    |  1      |   Num               | Packet Type       | 
+|  09    |  3      |   ASCII "ZZZ"       | Special ASCII     |
+|  16    |  2      |   ASCII             | Slot Number  (sn) |
+|  18    |  2      |   ASCII             | Packet Type 2(pt) |
+|  20    |  2      |   ASCII             | DMR Flag     (df) |
+|  22    |  2      |   ASCII             | Data Type    (dt) |
+|  26    |  13.5   |   RAW               | AMBE+2 Payload 1  |
+|  38.5  |  6      |   RAW               | DMR Sync          |
+|  44.5  |  13.5   |   RAW               | AMBE+2 Payload 2  |
+|  62    |  1      |   Num               | Destination Type  |
+|  64    |  3      |   Num 16bLE         | Destination Group |
+|  67    |  3      |   Num 16bLE         | Source ID *Bug    |
+
+
+####Sequence Number
+ Looping 0x00-0xFF for each packet or set of packets. Does not Increment for Sync Frames. 
+ 
+####Packet Type
+Seems to Signify the type of packet, or what pattern occurs at offset 00
+* 0x01 = Voice Frame
+* 0x02 = Start Of Transmission or Sync Frame
+* 0x03 = End of Transmission 
+* 0x41 = "A" as a part of "AZZZ"
+* 0x42 = "B" as a part of "BZZZ"
+* 0x43 = "C" as a part of "CZZZ"
+
+####Offset 09 ASCII
+Only occurs when the value at offset 8 is "A | B | C". Always associated with pattern at Offset 0x00
+          
+####Slot
+* "1111" = Slot 1
+* "2222" = Slot 2
+
+####Packet Type 2
+The rest of the packet structure can change depending on the value of Packet Type 2.
+* "DDDD" = Startup packet
+* "1111" = Startup packet
+* "EEEE" = Sync packet  
+* "7777" = Voice packet
+* "8888" = Voice packet
+* "9999" = Voice packet
+* "AAAA" = Voice packet
+* "BBBB" = Voice packet
+* "CCCC" = Voice packet
+* "2222" = End of Transmission
+* "FFFF" = Status Packet
+
+####DMR Flag
+All Voice, Data, Sync and Status DMR Packets have this set, and have a payload size of 72 bytes 
+* "1111" - Always
+ 
+####Payload Type
+* "0000" Voice
+* "DDDD" Voice (Filtered?)
+* "6666" Data 
+* "1111" Sync 
+
+####Voice & Data Service Packets
+
+####AMBE+2 Payload
+Offset 26 to high order nibble of 39 and low order nibble 44 through 58.
+
+####Destination Type
+* 0x00 = Private Call 
+* 0x01 = Group Call
+
+####Destination Group ID
+24 Bits Little Endian
+
+####Source Radio ID
+24 Bits Little Endian. First Bit is always 00 - Possible BUG?!
+
+###Sync Service Packets
 
 ```
-|------------------------------------------------------------------------|
-|                     Hytera Voice UDP Payload                           |
-|0                   1                   2                   3           | 
-|0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 |
-|------------------------------------------------------------------------|
-|<4 BYTE><>      <><ASCI>                            <---- AMBE+2 VOICE  |
-|------------------------------------------------------------------------|
+|--------------------------------------------------------------------------------------|..
+|0                   1                   2                   3                   4     |..
+|0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 |..continues
+|--------------------------------------------------------------------------------------|..same
+|<4 BYTE><>      <>              <sn>11111111<dt>                <DEST ID >  <SRC  ID >|..format
+|--------------------------------------------------------------------------------------|..as above
 ```
-cont...
-```
-|------------------------------------------------------------------------|
-|3       4                   5                   6                   7   |  
-|6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 |
-|------------------------------------------------------------------------|
-|----> <--SYNC --> <---- AMBE+2 VOICE    ---->       <>  <gid ><sid >    |
-|------------------------------------------------------------------------|
-```
-#### OFFSETS
-- **00 - 03**
-  - "ZZZZ" (ASCII)
-     - some form of special frame, seems to denote that the packet is from a remote repeater(maybe master) always denoted with pattern at offset 0x08
-  - 0xXXXX 
-    Port Number
-      - when Offset 18 - 19 "BBBB" or "1111" the first 2 bytes are the port number e.g. 0x7531 = 30001
 
-- **04** 
-  - 0x00 to 0xFF
-    - Voice Frame Sequence Number Looping Does not Increment for Sync Frames
+####Destination ID
+Bits At Offset 32, 34, 36, each prepended with 0x00
 
-OFFSET 8
-  0x01 = Voice Frame
-  0x02 = Start Of Transmission or Sync Frame
-  0x03 = End of Transmission 
-  0x41 = "A" as a part of "AZZZ"
-  0x42 = "B" as a part of "BZZZ"
-  0x43 = "C" as a part of "CZZZ"
+####Source Radio ID
+Bits At Offset 38, 40, 42, each prepended with 0x00
 
-OFFSET 9
-  "ZZZ" - only when the value at offset 8 is "A | B | C"
-          always associated with pattern at Offset 0x00 noted above
+## Networking Packet ##
 
-OFFSET 16 - 17
-  "1111" = Slot 1
-  "2222" = Slot 2
-
-OFFSET 18 - 19
-  "DDDD" = Startup packet
-  "1111" = Startup packet
-  "EEEE" = Sync packet  
-  "7777" = Voice packet
-  "8888" = Voice packet
-  "9999" = Voice packet
-  "AAAA" = Voice packet
-  "BBBB" = Voice packet
-  "CCCC" = Voice packet
-  "2222" = End of Transmission
-  "FFFF" = Status Packet
-  
-  Start of Transmission SEQUENCE: DDE1E1E1
-  Voice Sequence w/ Sync: 789AEBC  
-  Voice Packets: 789ABC 
-  
-OFFSET 20 - 21
-  "1111" - Always
-
-OFFSET 22 - 23 
-  PACKET TYPE
-  "0000" - DMR Voice Packet?
-  "DDDD" - DMR Voice Packet / Filtered?
-  "6666" - Data Packet
-  "1111" - Sync Packet
-
-OFFSET 32, 34, 36 (SYNC Packets Only)
-  Destination ID Bytes ( Big Endian )
-
-OFFSET 38, 40, 42 ( Sync Packets Only )
-  Source ID Bytes ( Big Endian )
-
-OFFSET 26 - 38 plus high order nibble of 39 for 13.5 bytes
-  AMBE+2 1 of 2 VOICE AND DATA 
-
-OFFSET 39 low order nibble - 44 plus high order nibble of 45 for total of 6 bytes
-  DMR Sync frame between all VOICE / DATA Packets
-  
-OFFSET 45 - 58 (starts at low order nibble of 45 through 58 for 13.5 bytes
-  AMBE+2 2 of 2 VOICE AND DATA
-  
-OFFSET 62
-  0x00 = Private Call
-  0x01 = Group Call
-
-OFFSET 64 - 66
-  Destination Group ID ( big endian )
-
-OFFSET 67 - 69 
-  Source ID ( little endian ) - First Byte Missing
------------------------------------------------------------------------------------------
-
-Peer to Peer Messages  
-Used to communicat device status across the network 
-
-
-
-|--------------------------------------------------------------------|  
-|                        PEER 2 PEER MESSAGE TYPE D+E                |  
-|0                   1                   2                   3       |  
-|0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 |  
-|--------------------------------------------------------------------|  
-|<ASCII  ><><           ><>              <>  <>      <  ><  ><      >|    
-|                                                    <   REPEATING  >|
-|---------------------------------------------------------------------  
-
-OFFSET 00-03  
-  ASCII : "PTPP" - Peer to Peer Message  
-  
-
-OFFSET 04 - MESSAGE TYPE  
-  
-  0x0D - MASTER -> SLAVE  
-  0x0E - MASTER <- SLAVE  
-
-OFFSET 05 - 11 
-  ALWAYS "00000014000000"
-
-OFFSET 12 - 14
-  UNKNOWN
-
-OFFSET 12  
-  COUNTDOWN TIMER SEC TILL 1/4 HR  
-
--Master -> Slave Message
-
-OFFSET 20  
-   NUMBER OF DEVEICES IN THIS MESSAGE  
-
-OFFSET 22  
-   0x10 = NEW / LEARNING  
-   0x11 = VOICE / DATA  
-   0x12 = RDAC  
-
-OFFSET 26 - 33  
-  (PTPP M->S) REPEATING FOR EACH DEVICE IN MESSAGE
-
-OFFSET 26
-  xx - Device Number in Network ( 01, 02, 03 ... )
-  
-OFFSET 27 
-  01 - REPEATER
-  02 - RDAC 
-
-OFFSET 29 - 28...  
-    UPD PORT OF SLAVE REPEATER  
-
-OFFSET 30 - 33...  
-    IP ADDRESS OF SLAVE REPEATER  
-
--Slave -> Master Reply 
+## RDAC Packet ##
