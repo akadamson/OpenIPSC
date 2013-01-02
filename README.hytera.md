@@ -129,10 +129,10 @@ New device setup and keep alive messging method
 |    Client                 Server                Peers      |Packet Type|
 |------------------------------------------------------------|-----------|
 |                                                            |           |
-|Hello            	                                          |\  0x01    |
+|Hello                                                       |\  0x01    |
 |Can Do PTPP     ----->                                      |/          |
 |                                                            |           | 
-|			                     Ack. Assign                         |\  0x02    |
+|                        Ack. Assign                         |\  0x02    |
 |                <-----  PTPP Dev Num                        |/          |
 |                                                            |           |
 |                        New device                          |\  0x06    |
@@ -169,20 +169,20 @@ New device setup and keep alive messging method
 |                        (rep 20 sec)                        |/          |
 |                                                            |           |                                                            |           |
 | ACK. Table     ----->                                      |\  0x0E    |
-|                                      <-----   ACK. Table   |/  0x0E    |
+|                                      <-----   ACK. Table   |/          |
 |                                                            |           |
 |                                                            |           |
-|                <----- Heart Beat req ----->                |   0x0A    |
-|                        (rep 7 sec)                         |   0x0A    |
-| Heart Beat req ----->                <----- Heart Beat Req |   0x0A    |
-| Heart Beat req --------------------------->                |   0x0A    |
-|                <--------------------------- Heart Beat Req |   0x0A    |
+|                <----- Heart Beat req ----->                |\          |
+|                        (rep 7 sec)                         | \         |
+| Heart Beat req ----->                <----- Heart Beat Req |  -0x0A    |
+| Heart Beat req --------------------------->                | /         |
+|                <--------------------------- Heart Beat Req |/          |
 |                                                            |           |
-|                <----- Heart Beat ACK ----->                |   NULL    |
-|                ---------------------------> Heart Beat ACK |   NULL    |
-| Heart Beat ACK --------------------------->                |   NULL    |
-|                -----> Heart Beat ACK <-----                |   NULL    |
-|                   (ack on service port)                    |           |
+|                <----- Heart Beat ACK ----->                |\          |
+|                ---------------------------> Heart Beat ACK | \         |
+| Heart Beat ACK --------------------------->                |  -NULL    |
+|                -----> Heart Beat ACK <-----                | /         |
+|                   (ack on service port)                    |/          |
 |------------------------------------------------------------|-----------|
 ```
 ## RDAC Packet ##
