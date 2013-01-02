@@ -1,7 +1,6 @@
 #Hytera "Multi Site Connect" Protocol  
 
 ##VOICE / DATA PACKETS  
-- UDP PAYLOAD SIZE: 72  
 
 ```
 |------------------------------------------------------------------------|
@@ -21,16 +20,17 @@ cont...
 |----> <--SYNC --> <---- AMBE+2 VOICE    ---->       <>  <gid ><sid >    |
 |------------------------------------------------------------------------|
 ```
-### OFFSET 0 - 3
-  "ZZZZ"        = some form of special frame, seems to denote that the
-                  packet is from a remote repeater(maybe master)
-                  always denoted with pattern at offset 0x08
-  0xXXXX        = Offset 18 - 19 "BBBB" or "1111"
-                  the first 2 bytes are the port number e.g. 0x7531 = 30001
+#### OFFSETS
+- **00 - 03**
+  - "ZZZZ" (ASCII)
+     - some form of special frame, seems to denote that the packet is from a remote repeater(maybe master) always denoted with pattern at offset 0x08
+  - 0xXXXX 
+    Port Number
+      - when Offset 18 - 19 "BBBB" or "1111" the first 2 bytes are the port number e.g. 0x7531 = 30001
 
-OFFSET 4 
-  00 to FF = Voice Frame Sequence Number Looping
-             Does not Increment for Sync Frames
+- **04** 
+  - 0x00 to 0xFF
+    - Voice Frame Sequence Number Looping Does not Increment for Sync Frames
 
 OFFSET 8
   0x01 = Voice Frame
