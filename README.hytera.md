@@ -2,6 +2,7 @@
 
 ##VOICE / DATA PACKETS  
 - UDP PAYLOAD SIZE: 72  
+
 ```
 |------------------------------------------------------------------------|
 |                     Hytera Voice UDP Payload                           |
@@ -20,7 +21,7 @@ cont...
 |----> <--SYNC --> <---- AMBE+2 VOICE    ---->       <>  <gid ><sid >    |
 |------------------------------------------------------------------------|
 ```
-OFFSET 0 - 3
+### OFFSET 0 - 3
   "ZZZZ"        = some form of special frame, seems to denote that the
                   packet is from a remote repeater(maybe master)
                   always denoted with pattern at offset 0x08
