@@ -1,7 +1,7 @@
 #Hytera "Multi Site Connect" Protocol  
 
 ##VOICE / DATA PACKETS  
--- UDP PAYLOAD SIZE: 72  
+- UDP PAYLOAD SIZE: 72  
 ```
 |------------------------------------------------------------------------|
 |                     Hytera Voice UDP Payload                           |
